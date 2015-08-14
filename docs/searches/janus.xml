@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<qdf:qdf xmlns:qdf="http://services.chronos.org/qdf/QDF" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://services.chronos.org/qdf/QDF ../qdf.xsd">
+    <query xsi:type="qdf:SQLQuery">
+        <id>iodp.janus.samples.location</id>
+        <title>Samples by Location</title>
+        <description>Get samples from the Janus database constrained by location.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/10/17</date>
+        <labels>
+            <label>Janus</label>
+        </labels>
+        <providers>
+            <provider>Janus</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param label="Leg" name="leg" required="false" type="Leg">Limit to samples from a specific leg.</param>
+            <param label="Site" name="site" required="false" type="Site">Limit to samples from a specific site.</param>
+            <param label="Hole" name="hole" required="false" type="Hole">Limit to samples from a specific hole.</param>
+            <param format="sql-range" label="Latitude" name="latitude" required="false" type="LatitudeDD"> Limit to samples from a latitude (in decimal degrees)
+                range. You may specify the range as 'lat1-lat2', '&lt; lat1', or '&gt; lat1'. Valid values for the latitude are -90 to 90. Positive
+                latitudes correspond to the northern hemisphere negative latitudes correspond to the southern hemisphere. </param>
+            <param format="sql-range" label="Longitude" name="longitude" required="false" type="LongitudeDD"> Limit to samples from a longitude (in decimal
+                degrees) range. You may specify the range as 'long1-long2', '&lt; long1', or '&gt; long1'. Valid values for the longitude are -180 to
+                180. Positive longitudes correspond to eastern longitudes and negative longitudes correspond to western longitudes. </param>
+            <param label="Ocean" name="ocean" required="false" type="JanusOceanCode" format="janus-ocean-code"> Limit to samples from a particular ocean.</param>
+            <param label="Include only samples that have been dated" name="include_dated" required="false" type="Flag"/>
+        </inputs>
+        <outputs>
+            <param label="Sample Age Old" name="sample_age_old" required="true" type="AgeMA"> The older age of the sample. </param>
+            <param label="Sample Age Young" name="sample_age_young" required="true" type="AgeMA"> The young age of the sample. </param>
+            <param label="Sample Depth" name="sample_depth" required="true" type="DepthMBSF"> The depth of the sample. </param>
+            <param label="Water Depth" name="water_depth" required="true" type="WaterDepth"> The water depth of the hole that the sample was taken from. </param>
+            <param label="Leg" name="leg" required="true" type="Leg">The leg.</param>
+            <param label="Site" name="site" required="true" type="Site">The site.</param>
+            <param label="Hole" name="hole" required="true" type="Hole">The hole</param>
+            <param label="Latitude" name="latitude" required="true" type="LatitudeDD"> The latitude (in decimal degrees) of the hole that the sample was taken
+                from. </param>
+            <param label="Longitude" name="longitude" required="true" type="LongitudeDD"> The longitude (in decimal degrees) of the hole that the sample was
+                taken from. </param>
+            <param format="janus-ocean-code" label="Ocean" name="ocean_code" required="true" type="JanusOceanCode"> The ocean where the hole is
+                located. </param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>xls</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>Janus</database>
+        <sql>
+            <![CDATA[
+            SELECT DISTINCT
+                f.GEOLOGIC_AGE_OLD as sample_age_old, f.GEOLOGIC_AGE_YOUNG as sample_age_young, b.SAMPLE_DEPTH, e.FINAL_WATER_DEPTH as water_depth,
+                a.LEG, a.SITE, a.HOLE, e.LATITUDE_DEGREES as latitude, e.LONGITUDE_DEGREES as longitude, g.OCEAN_CODE
+            FROM
+                section a, sample b, paleo_sample_taxon c, hole e, paleo_sample f, site g
+            WHERE
+                a.SECTION_ID = b.SAM_SECTION_ID
+                AND b.SAMPLE_ID = c.SAMPLE_ID
+                AND c.SAMPLE_ID = f.SAMPLE_ID
+                AND a.LEG = e.LEG
+                AND a.SITE = e.SITE
+                AND a.HOLE = e.HOLE
+                AND a.LEG = g.LEG
+                AND a.SITE = g.SITE
+                <#if include_dated?has_content && include_dated != 'false' && include_dated != 'no'>
+                AND (f.GEOLOGIC_AGE_OLD IS NOT NULL OR f.GEOLOGIC_AGE_YOUNG IS NOT NULL)
+                </#if>
+                <#if latitude?has_content>
+                AND e.LATITUDE_DEGREES ${latitude}
+                </#if>
+                <#if longitude?has_content>
+                AND e.LONGITUDE_DEGREES ${longitude}
+                </#if>
+                <#if ocean?has_content>
+                AND g.ocean_code = '${ocean}'
+                </#if>
+                <#if leg?has_content>
+                AND a.leg = '${leg}'
+                </#if>
+                <#if site?has_content>
+                AND a.site = '${site}'
+                </#if>
+                <#if hole?has_content>
+                AND a.hole = '${hole}'
+                </#if>
+            ]]>
+        </sql>
+    </query>
+    <query xsi:type="qdf:SQLQuery">
+        <id>odp.janus.samples.age</id>
+        <title>Samples by Age</title>
+        <description>Get samples from the Janus database constrained by age.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/10/17</date>
+        <labels>
+            <label>Janus</label>
+        </labels>
+        <providers>
+            <provider>Janus</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param format="time-range" label="Time Range" name="time_range" required="true" type="AgeRange"> Limit to samples from a particular time range. You
+                may specify the range with numerical ages or time scale stage names as 'ma1-ma2', '&lt; ma1', '&gt; ma1', 'stage1', 'stage1-stage2',
+                '&lt; stage1', or '&gt; stage1'. </param>
+        </inputs>
+        <outputs>
+            <param label="Sample Age Old" name="sample_age_old" required="true" type="AgeMA"> The older age of the sample. </param>
+            <param label="Sample Age Young" name="sample_age_young" required="true" type="AgeMA"> The young age of the sample. </param>
+            <param label="Sample Depth" name="sample_depth" required="true" type="DepthMBSF"> The depth of the sample. </param>
+            <param label="Water Depth" name="water_depth" required="true" type="WaterDepth"> The water depth of the hole that the sample was taken from. </param>
+            <param label="Leg" name="leg" required="true" type="Leg">The leg.</param>
+            <param label="Site" name="site" required="true" type="Site">The site.</param>
+            <param label="Hole" name="hole" required="true" type="Hole">The hole</param>
+            <param label="Latitude" name="latitude" required="true" type="LatitudeDD"> The latitude (in decimal degrees) of the hole that the sample was taken
+                from. </param>
+            <param label="Longitude" name="longitude" required="true" type="LongitudeDD"> The longitude (in decimal degrees) of the hole that the sample was
+                taken from. </param>
+            <param format="janus-ocean-code" label="Ocean" name="ocean_code" required="true" type="JanusOceanCode"> The ocean where the hole is
+                located. </param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>xls</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>Janus</database>
+        <sql>
+            <![CDATA[
+            SELECT DISTINCT
+                f.GEOLOGIC_AGE_OLD as sample_age_old, f.GEOLOGIC_AGE_YOUNG as sample_age_young, b.SAMPLE_DEPTH, 
+                e.FINAL_WATER_DEPTH as water_depth, a.LEG, a.SITE, a.HOLE, e.LATITUDE_DEGREES as latitude, e.LONGITUDE_DEGREES as longitude,
+                g.OCEAN_CODE
+            FROM
+                section a, sample b, paleo_sample_taxon c, hole e, paleo_sample f, site g
+            WHERE
+                a.SECTION_ID = b.SAM_SECTION_ID
+                AND b.SAMPLE_ID = c.SAMPLE_ID
+                AND c.SAMPLE_ID = f.SAMPLE_ID
+                AND a.LEG = e.LEG
+                AND a.SITE = e.SITE
+                AND a.HOLE = e.HOLE
+                AND a.LEG = g.LEG
+                AND a.SITE = g.SITE
+                <#if include_dated?has_content && include_dated != 'false' && include_dated != 'no'>
+                AND (f.GEOLOGIC_AGE_OLD IS NOT NULL OR f.GEOLOGIC_AGE_YOUNG IS NOT NULL)
+                </#if>
+                AND (f.GEOLOGIC_AGE_OLD ${time_range} OR f.GEOLOGIC_AGE_YOUNG ${time_range})
+            ]]>
+        </sql>
+    </query>
+    <query xsi:type="qdf:SQLQuery">
+        <id>iodp.janus.samples.taxon</id>
+        <title>Samples by Taxa Occurrences</title>
+        <description>Get samples from the Janus database constrained by taxa occurrences.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/10/17</date>
+        <labels>
+            <label>Janus</label>
+        </labels>
+        <providers>
+            <provider>Janus</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param format="taxon-name" label="Taxon Name" name="taxon" required="true" type="JanusTaxonName">Constrain to samples that contain the specified
+                taxon name. This can be a genera ('Globigerinoides') or a genus-species combination ('Globigerinoides mitra' or 'G. mitra').</param>
+            <param format="janus-fossil-group" label="Fossil Group" name="fossil_group" required="false" type="JanusFossilGroup"> Limit to samples
+                containing taxon occurrences from a particular fossil group. </param>
+            <param label="Include only samples that have been dated" name="include_dated" required="false" type="Flag"/>
+        </inputs>
+        <outputs>
+            <param label="Sample Age Old" name="sample_age_old" required="true" type="AgeMA"> The older age of the sample. </param>
+            <param label="Sample Age Young" name="sample_age_young" required="true" type="AgeMA"> The young age of the sample. </param>
+            <param label="Sample Depth" name="sample_depth" required="true" type="DepthMBSF"> The depth of the sample. </param>
+            <param label="Water Depth" name="water_depth" required="true" type="WaterDepth"> The water depth of the hole that the sample was taken from. </param>
+            <param label="Leg" name="leg" required="true" type="Leg">The leg.</param>
+            <param label="Site" name="site" required="true" type="Site">The site.</param>
+            <param label="Hole" name="hole" required="true" type="Hole">The hole</param>
+            <param label="Latitude" name="latitude" required="true" type="LatitudeDD"> The latitude (in decimal degrees) of the hole that the sample was taken
+                from. </param>
+            <param label="Longitude" name="longitude" required="true" type="LongitudeDD"> The longitude (in decimal degrees) of the hole that the sample was
+                taken from. </param>
+            <param format="janus-ocean-code" label="Ocean" name="ocean_code" required="true" type="JanusOceanCode"> The ocean where the hole is
+                located. </param>
+            <param label="Taxon Abundance" name="taxon_abundance" required="true" type="JanusTaxonAbundance"> The abundance of the taxon within the sample. </param>
+            <param label="Taxon Name" name="taxon" required="true" type="TaxonName"> The name of the taxon occurring in the sample. </param>
+            <param format="janus-fossil-group" label="Fossil Group" name="fossil_group" required="true" type="JanusFossilGroup"> The fossil
+                group of the taxa occuring in the sample. </param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>xls</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>Janus</database>
+        <sql>
+            <![CDATA[
+            SELECT DISTINCT
+                f.GEOLOGIC_AGE_OLD as sample_age_old, f.GEOLOGIC_AGE_YOUNG as sample_age_young, 
+                b.SAMPLE_DEPTH, e.FINAL_WATER_DEPTH as water_depth,
+                a.LEG, a.SITE, a.HOLE, e.LATITUDE_DEGREES as latitude, e.LONGITUDE_DEGREES as longitude,
+                g.OCEAN_CODE, h.TAXON_ABUNDANCE_DEFINITION as taxon_abundance, 
+                TRIM(INITCAP(d.GENUS_SUBGENUS) || ' ' || LOWER(d.SPECIES_SUBSPECIES)) as taxon,
+                c.FOSSIL_GROUP
+            FROM
+                section a, sample b, paleo_sample_taxon c, taxon_concept d, hole e, paleo_sample f, site g,
+                taxon_abundance h
+            WHERE
+                a.SECTION_ID = b.SAM_SECTION_ID
+                AND b.SAMPLE_ID = c.SAMPLE_ID
+                AND c.SAMPLE_ID = f.SAMPLE_ID
+                AND c.TAXON_ID = d.TAXON_ID
+                AND a.LEG = e.LEG
+                AND a.SITE = e.SITE
+                AND a.HOLE = e.HOLE
+                AND a.LEG = g.LEG
+                AND a.SITE = g.SITE
+                AND f.FOSSIL_GROUP = h.FOSSIL_GROUP
+                AND c.TAXON_RELATIVE_ABUNDANCE = h.TAXON_ABUNDANCE
+                <#if genus?has_content>
+                AND UPPER(d.genus_subgenus) LIKE UPPER('${genus}')
+                </#if>
+                <#if species?has_content>
+                AND UPPER(d.species_subspecies) LIKE UPPER('${species}')
+                </#if>
+                <#if fossil_group?has_content>
+                AND f.FOSSIL_GROUP = '${fossil_group}'
+                </#if>
+                <#if include_dated?has_content && include_dated != 'false' && include_dated != 'no'>
+                AND (f.GEOLOGIC_AGE_OLD IS NOT NULL OR f.GEOLOGIC_AGE_YOUNG IS NOT NULL)
+                </#if>
+            ]]>
+        </sql>
+    </query>
+    <query xsi:type="qdf:SQLQuery">
+        <id>iodp.janus.core-images</id>
+        <title>Core Info and Images</title>
+        <description>Gets information and images for cores in Janus.</description>
+        <author>searches@chronos.org</author>
+        <date>2006/02/03</date>
+        <labels>
+            <label>Janus</label>
+        </labels>
+        <providers>
+            <provider>Janus</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param label="Leg" name="leg" required="false" type="Leg">Limit to samples from a specific leg.</param>
+            <param label="Site" name="site" required="false" type="Site">Limit to samples from a specific site.</param>
+            <param label="Hole" name="hole" required="false" type="Hole">Limit to samples from a specific hole.</param>
+            <param format="sql-range" label="Latitude" name="latitude" required="false" type="LatitudeDD"> Limit to samples from a latitude (in decimal degrees)
+                range. You may specify the range as 'lat1-lat2', '&lt; lat1', or '&gt; lat1'. Valid values for the latitude are -90 to 90. Positive
+                latitudes correspond to the northern hemisphere negative latitudes correspond to the southern hemisphere. </param>
+            <param format="sql-range" label="Longitude" name="longitude" required="false" type="LongitudeDD"> Limit to samples from a longitude (in decimal
+                degrees) range. You may specify the range as 'long1-long2', '&lt; long1', or '&gt; long1'. Valid values for the longitude are -180 to
+                180. Positive longitudes correspond to eastern longitudes and negative longitudes correspond to western longitudes. </param>
+            <param label="Ocean" name="ocean" required="false" type="JanusOceanCode" format="janus-ocean-code"> Limit to samples from a particular ocean.</param>
+            <param format="time-range" label="Time Range" name="time_range" required="false" type="AgeRange"> Limit to samples from a particular time range. You
+                may specify the range with numerical ages or time scale stage names as 'ma1-ma2', '&lt; ma1', '&gt; ma1', 'stage1', 'stage1-stage2',
+                '&lt; stage1', or '&gt; stage1'. </param>
+            <param format="taxon-name" label="Taxon Name" name="taxon" required="false" type="JanusTaxonName">Constrain to samples that contain the specified
+                taxon name. This can be a genera ('Globigerinoides') or a genus-species combination ('Globigerinoides mitra' or 'G. mitra').</param>
+        </inputs>
+        <outputs>
+            <param label="Leg" name="leg" required="true" type="Leg">The leg.</param>
+            <param label="Site" name="site" required="true" type="Site">The site.</param>
+            <param label="Hole" name="hole" required="true" type="Hole">The hole</param>
+            <param label="Core" name="core" required="true" type="Core">The core.</param>
+            <param label="Section Number" name="section_number" required="true" type="SectionNumber">The section number.</param>
+            <param label="Section Type" name="section_type" required="true" type="SectionType">The section type.</param>
+            <param label="Core Type" name="core_type" required="true" type="CoreType">The core type.</param>
+            <param label="Curated Length" name="curated_length" required="true" type="CuratedLength">The curated length in meters.</param>
+            <param label="Liner Length" name="liner_length" required="true" type="LinerLength">The liner length.</param>
+            <param label="Image URL" name="url" required="true" type="ImageURL">The image url.</param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>xls</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>janus</database>
+        <sql>
+            <![CDATA[
+            SELECT DISTINCT
+                a.leg, a.site, a.hole, a.core, a.section_number, a.section_id, a.section_type, a.core_type,
+                a.curated_length, a.liner_length, map_interval_top MBSF,format,resolution DPI, 'http://www.iodp.tamu.edu/' || b.url as url
+            FROM
+                section a, section_images b, depth_map m
+                <#if taxon?has_content || time_range?has_content>
+                , sample c, paleo_sample_taxon d, taxon_concept e, paleo_sample f
+                </#if>
+                <#if latitude?has_content || longitude?has_content || ocean?has_content>
+                , hole g, site h
+                </#if>
+            WHERE
+                a.SECTION_ID = m.SECTION_ID
+                AND m.SECTION_ID = b.SECTION_ID
+                AND map_type = 'STD'
+                <#if leg?has_content>
+                AND a.leg = '${leg}'
+                </#if>
+                <#if site?has_content>
+                AND a.site = '${site}'
+                </#if>
+                <#if hole?has_content>
+                AND a.hole = '${hole}'
+                </#if>
+                
+                <#if latitude?has_content || longitude?has_content || ocean?has_content>
+                AND a.LEG = g.LEG
+                AND a.SITE = g.SITE
+                AND a.HOLE = g.HOLE
+                AND a.LEG = h.LEG
+                AND a.SITE = h.SITE
+                    <#if latitude?has_content>
+                    AND g.latitude_degrees ${latitude}
+                    </#if>
+                    <#if longitude?has_content>
+                    AND g.longitude_degrees ${longitude}
+                    </#if>
+                    <#if ocean?has_content>
+                    AND h.ocean_code = '${ocean}'
+                    </#if>
+                </#if>           
+                <#if taxon?has_content || time_range?has_content>
+                AND b.SECTION_ID = c.SAM_SECTION_ID
+                AND c.SAMPLE_ID = d.SAMPLE_ID
+                AND d.SAMPLE_ID = f.SAMPLE_ID
+                AND d.TAXON_ID = e.TAXON_ID
+                    <#if genus?has_content>
+                    AND UPPER(e.genus_subgenus) LIKE UPPER('${genus}')
+                    </#if>
+                    <#if species?has_content>
+                    AND UPPER(e.species_subspecies) LIKE UPPER('${species}')
+                    </#if>
+                    <#if time_range?has_content>
+                    AND (f.GEOLOGIC_AGE_OLD ${time_range} OR f.GEOLOGIC_AGE_YOUNG ${time_range})
+                    </#if>
+                </#if>
+            ]]>
+        </sql>
+    </query>
+</qdf:qdf>

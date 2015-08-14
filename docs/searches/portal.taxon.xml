@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<qdf:qdf xmlns:qdf="http://services.chronos.org/qdf/QDF" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://services.chronos.org/qdf/QDF ../qdf.xsd">
+    <query xsi:type="qdf:PortalQuery">
+        <id>chronos.portal.taxon</id>
+        <title>Taxon Info</title>
+        <description>Enter a taxon name or genus name to see what data is available in CHRONOS.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/12/14</date>
+        <labels>
+            <label>Portal</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param label="Taxon Name" name="taxon" required="true" type="NeptuneTaxonName"
+                format="taxon-name">Constrain to samples that contain the specified taxon name. This
+                can be a genera ('Globigerinoides') or a genus-species combination ('Globigerinoides
+                mitra' or 'G. mitra').</param>
+        </inputs>
+        <outputs/>
+        <serializers/>
+        <layout>resources/templates/infopages/TaxonInfoPage.ftl</layout>
+    </query>
+    
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.neptune.taxon.valid</id>
+        <title>Valid Taxon in Neptune</title>
+        <description>Get the valid taxon in Neptune for a specific taxon.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/12/14</date>
+        <labels>
+            <label>Utility</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param label="Taxon Name" name="taxon" required="true" type="NeptuneTaxonName"
+                format="taxon-name">Constrain to samples that contain the specified taxon name. This
+                can be a genera ('Globigerinoides') or a genus-species combination ('Globigerinoides
+                mitra' or 'G. mitra').</param>
+        </inputs>
+        <outputs>
+            <param label="Valid Taxon" name="taxon" required="true" type="Taxon"></param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+        </serializers>
+        <database>neptune</database>
+        <sql>
+            <![CDATA[
+            SELECT DISTINCT
+                TRIM(INITCAP(a.genus) || ' ' || LOWER(a.species) || ' ' || LOWER(COALESCE(a.subspecies,' '))) AS taxon
+            FROM neptune_taxonomy a, neptune_taxonomy_synonym b
+            WHERE a.taxon_id = b.taxon_id AND a.taxon_status = 'V' AND b.taxon_id IN (
+                SELECT z.taxsyn_id FROM neptune_taxonomy y, neptune_taxonomy_synonym z
+                WHERE y.genus ILIKE '${genus}' 
+                <#if species?has_content>
+                    AND y.species ILIKE '${species}'
+                </#if>
+                <#if subspecies?has_content>
+                    AND y.subspecies ILIKE '${subspecies}'
+                </#if>
+                    AND y.taxon_id = z.taxon_id
+            )
+            ]]>
+        </sql>
+    </query>
+
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.neptune.taxon.synonyms</id>
+        <title>Synonymous Taxon in Neptune</title>
+        <description>Get the synonymous taxon in Neptune for a specific taxon.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/12/14</date>
+        <labels>
+            <label>Utility</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param label="Taxon Name" name="taxon" required="true" type="NeptuneTaxonName"
+                format="taxon-name">Constrain to samples that contain the specified taxon name. This
+                can be a genera ('Globigerinoides') or a genus-species combination ('Globigerinoides
+                mitra' or 'G. mitra').</param>
+        </inputs>
+        <outputs>
+            <param label="Synonymous Taxon" name="taxon" required="true" type="Taxon"></param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+        </serializers>
+        <database>neptune</database>
+        <sql>
+            <![CDATA[
+            SELECT DISTINCT
+                TRIM(INITCAP(a.genus) || ' ' || LOWER(a.species) || ' ' || LOWER(COALESCE(a.subspecies,' '))) AS taxon
+            FROM neptune_taxonomy a, neptune_taxonomy_synonym b
+            WHERE a.taxon_id = b.taxon_id AND a.taxon_status != 'V' AND b.taxsyn_id IN (
+                SELECT z.taxsyn_id FROM neptune_taxonomy y, neptune_taxonomy_synonym z
+                WHERE y.genus ILIKE '${genus}' 
+                <#if species?has_content>
+                    AND y.species ILIKE '${species}'
+                </#if>
+                <#if subspecies?has_content>
+                    AND y.subspecies ILIKE '${subspecies}'
+                </#if>
+                    AND y.taxon_id = z.taxon_id
+            )
+            ]]>
+        </sql>
+    </query>
+    
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.neptune.taxon.synonymy</id>
+        <title>Taxa Synonymy in Neptune</title>
+        <description>Get the whole taxa synonymy in Neptune for a specific taxon.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/12/14</date>
+        <labels>
+            <label>Utility</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param label="Taxon Name" name="taxon" required="true" type="NeptuneTaxonName"
+                format="taxon-name">Constrain to samples that contain the specified taxon name. This
+                can be a genera ('Globigerinoides') or a genus-species combination ('Globigerinoides
+                mitra' or 'G. mitra').</param>
+        </inputs>
+        <outputs>
+            <param label="Valid Taxon" name="taxon" required="true" type="Taxon"></param>
+            <param label="Taxon Status" name="taxon_status" required="true" type="NeptuneTaxonStatus"></param>
+            <param label="Taxon ID" name="taxon_id" required="true" type="NeptuneTaxonId"></param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+        </serializers>
+        <database>neptune</database>
+        <sql>
+            <![CDATA[
+            SELECT DISTINCT
+                TRIM(INITCAP(a.genus) || ' ' || LOWER(a.species) || ' ' || LOWER(COALESCE(a.subspecies,' '))) AS taxon,
+                a.taxon_status, a.taxon_id
+            FROM neptune_taxonomy a, neptune_taxonomy_synonym b
+            WHERE a.taxon_id = b.taxon_id AND b.taxsyn_id IN (
+                SELECT z.taxsyn_id FROM neptune_taxonomy y, neptune_taxonomy_synonym z
+                WHERE y.genus ILIKE '${genus}' 
+                <#if species?has_content>
+                    AND y.species ILIKE '${species}'
+                </#if>
+                <#if subspecies?has_content>
+                    AND y.subspecies ILIKE '${subspecies}'
+                </#if>
+                    AND y.taxon_id = z.taxon_id
+            )
+            ]]>
+        </sql>
+    </query>    
+    
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.neptune.taxon.foramdb_link</id>
+        <title>Neptune-ForamDB Link</title>
+        <description>Get the record number (if any) in the foram database of a taxon in Neptune.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/12/14</date>
+        <labels>
+            <label>Utility</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param label="Taxon Name" name="taxon" required="true" type="NeptuneTaxonName"
+                format="taxon-name">Constrain to samples that contain the specified taxon name. This
+                can be a genera ('Globigerinoides') or a genus-species combination ('Globigerinoides
+                mitra' or 'G. mitra').</param>
+        </inputs>
+        <outputs>
+            <param label="Taxon Name" name="taxon" required="true" type="NeptuneTaxonName"></param>
+            <param label="Record Number" name="record" required="true" type="RecordNumber"></param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+        </serializers>
+        <database>neptune</database>
+        <sql>
+            <![CDATA[
+            SELECT DISTINCT
+                TRIM(INITCAP(a.genus) || ' ' || LOWER(a.species) || ' ' || LOWER(COALESCE(a.subspecies,' '))) AS taxon,
+                record_number
+            FROM 
+                neptune_taxonomy a, neptune_taxonomy_synonym b, foramdb_neptune_link c
+            WHERE 
+                a.taxon_id = b.taxon_id AND a.taxon_id = c.taxon_id AND b.taxsyn_id IN (
+                    SELECT z.taxsyn_id FROM neptune_taxonomy y, neptune_taxonomy_synonym z
+                    WHERE y.genus ILIKE '${genus}'
+                    <#if species?has_content>
+                        AND y.species ILIKE '${species}'
+                    </#if>
+                    <#if subspecies?has_content>
+                        AND y.subspecies ILIKE '${subspecies}'
+                    </#if>
+                        AND y.taxon_id = z.taxon_id
+                )
+            ]]>
+        </sql>
+    </query>
+    
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.neptune.taxon.palc_link</id>
+        <title>PALC-Neptune Link</title>
+        <description>Get the URL (if any) in the Atlas of Paleocene Planktonic Foraminifera of a taxon in Neptune.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/12/14</date>
+        <labels>
+            <label>Utility</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param label="Taxon Name" name="taxon" required="true" type="NeptuneTaxonName"
+                format="taxon-name">Constrain to samples that contain the specified taxon name. This
+                can be a genera ('Globigerinoides') or a genus-species combination ('Globigerinoides
+                mitra' or 'G. mitra').</param>
+        </inputs>
+        <outputs>
+            <param label="Taxon Name" name="taxon" required="true" type="NeptuneTaxonName"></param>
+            <param label="URL" name="url" required="true" type="URL"></param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+        </serializers>
+        <database>neptune</database>
+        <sql>
+            <![CDATA[
+            SELECT DISTINCT
+                TRIM(INITCAP(a.genus) || ' ' || LOWER(a.species) || ' ' || LOWER(COALESCE(a.subspecies,' '))) AS taxon,
+                'http://services.chronos.org/foramatlas/frames/' || fossil_code || '.htm' as url
+            FROM 
+                neptune_taxonomy a, neptune_taxonomy_synonym b, palc_neptune_link c
+            WHERE 
+                a.taxon_id = b.taxon_id AND a.taxon_id = c.taxon_id AND b.taxsyn_id IN (
+                    SELECT z.taxsyn_id FROM neptune_taxonomy y, neptune_taxonomy_synonym z
+                    WHERE y.genus ILIKE '${genus}' 
+                    <#if species?has_content>
+                        AND y.species ILIKE '${species}'
+                    </#if>
+                    <#if subspecies?has_content>
+                        AND y.subspecies ILIKE '${subspecies}'
+                    </#if>
+                        AND y.taxon_id = z.taxon_id
+                )
+            ]]>
+        </sql>
+    </query>
+    <query xsi:type="qdf:POJOQuery">
+        <id>chronos.util.charts</id>
+        <title>Get Named Charts</title>
+        <description>Gets the list of valid chart names for the specified search.</description>
+        <author>searches@chronos.org</author>
+        <date>2006/01/11</date>
+        <labels>
+            <label>Utility</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param label="Search" name="target" required="true" type="QDFTarget"/>
+        </inputs>
+        <outputs>
+            <param label="Chart" name="chart" required="true" type="ChartName"></param>
+        </outputs>
+        <serializers>
+            <serializer>csv</serializer>
+        </serializers>
+        <class>org.chronos.xqe.opt.queries.pojo.NamedChartPOJO</class>
+        <method>getNamedCharts</method>
+    </query>
+</qdf:qdf>

@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<qdf:qdf xmlns:qdf="http://services.chronos.org/qdf/QDF" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://services.chronos.org/qdf/QDF ../qdf.xsd">
+    <query xsi:type="qdf:SQLQuery">
+        <id>nmita.nmita.samples.location</id>
+        <title>Samples by Location</title>
+        <description>
+        	Gets samples from NMITA by location.
+        </description>
+        <author>searches@chronos.org</author>
+        <date>2006/06/19</date>
+        <labels>
+            <label>NMITA</label>
+        </labels>
+        <providers>
+            <provider>NMITA</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+        	<param label="Country" name="country_name" required="false" type="NMITACountryName">Limit to a specific country.</param>
+            <param label="Country Region" name="country_region" required="false" type="NMITACountryRegion">Limit to a specific country region.</param>
+            <param label="Locality" name="locality_name" required="false" type="NMITALocalityName">Limit to a specific locality.</param>
+            <param label="Formation" name="formation_name" required="false" type="NMITAFormationName">Limit to a specific formation.</param>
+            <param format="sql-range" label="Latitude" name="latitude" required="false" type="LatitudeDD"> Limit to samples from a latitude (in decimal degrees)
+                range. You may specify the range as 'lat1-lat2', '&lt; lat1', or '&gt; lat1'. Valid values for the latitude are -90 to 90. Positive
+                latitudes correspond to the northern hemisphere negative latitudes correspond to the southern hemisphere. </param>
+            <param format="sql-range" label="Longitude" name="longitude" required="false" type="LongitudeDD"> Limit to samples from a longitude (in decimal
+                degrees) range. You may specify the range as 'long1-long2', '&lt; long1', or '&gt; long1'. Valid values for the longitude are -180 to
+                180. Positive longitudes correspond to eastern longitudes and negative longitudes correspond to western longitudes. </param>
+        </inputs>
+        <outputs>
+            <param label="Sample ID" name="coll_ev_sam_no" required="true" type="NMITASampleID"> The sample id. </param>
+            <param label="Country" name="country_name" required="true" type="NMITACountryName"> The country name. </param>
+            <param label="Country Region" name="country_region" required="true" type="NMITACountryRegion"> The region. </param>
+            <param label="Locality" name="locality_name" required="true" type="NMITALocalityName"> The locality name. </param>
+            <param label="Formation" name="formation_name" required="true" type="NMITAFormationName"> The formation name. </param>
+            <param label="Region" name="region" required="true" type="NMITARegion"> The region. </param>
+            <param label="Strat Unit" name="strat_unit_name" required="true" type="NMITAStratUnitName"> The strat unit name. </param>
+            <param label="Latitude" name="latitude" required="true" type="LatitudeDD"> The latitude (in decimal degrees). </param>
+            <param label="Longitude" name="longitude" required="true" type="LongitudeDD"> The longitude (in decimal degrees). </param>
+            <param label="ICA Bottom" name="ica_bottom" required="true" type="NMITAICABottom"> The ICA bottom. </param>
+            <param label="ICA Top" name="ica_top" required="true" type="NMITAICATop"> The ICA top. </param>
+            <param label="ICA Units" name="ica_units" required="true" type="NMITAICAUnits"> The ICA units. </param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>xls</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>nmita</database>
+        <sql>
+            <![CDATA[
+                SELECT 
+    				a.COLL_EV_SAM_NO, b.COUNTRY_NAME, b.COUNTRY_REGION, b.LOCALITY_NAME, b.FORMATION_NAME, 
+    				b.REGION, a.STRAT_UNIT_NAME, b.LATITUDE, b.LONGITUDE, 
+    				b.ICA_BOTTOM, b.ICA_TOP, b.ICA_UNITS
+				FROM
+    				NMITA.LOCALITY a, NMITA.STRAT b
+				WHERE
+    				a.STRAT_UNIT_NAME = b.STRAT_UNIT_NAME
+    				<#if country_name?has_content>
+                	AND UPPER(b.country_name) LIKE UPPER('${country_name}')
+                	</#if>
+                	<#if country_region?has_content>
+                	AND UPPER(b.country_region) LIKE UPPER('${country_region}')
+                	</#if>
+                	<#if locality_name?has_content>
+                	AND UPPER(b.locality_name) LIKE UPPER('${locality_name}')
+                	</#if>
+                	<#if formation_name?has_content>
+                	AND UPPER(b.formation_name) LIKE UPPER('${formation_name}')
+                	</#if>
+    				<#if latitude?has_content>
+                	AND b.latitude ${latitude}
+                	</#if>
+                	<#if longitude?has_content>
+                	AND b.longitude ${longitude}
+                	</#if>
+				ORDER BY
+    				b.ICA_BOTTOM, b.FORMATION_NAME, b.COUNTRY_NAME
+            ]]>
+        </sql>
+    </query>
+    <query xsi:type="qdf:SQLQuery">
+        <id>nmita.nmita.samples.age</id>
+        <title>Samples by Age</title>
+        <description>
+        	Gets samples from NMITA by Age.
+        </description>
+        <author>searches@chronos.org</author>
+        <date>2006/06/19</date>
+        <labels>
+            <label>NMITA</label>
+        </labels>
+        <providers>
+            <provider>NMITA</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param label="ICA Bottom" format="sql-range" name="ica_bottom" required="false" type="NMITAICABottom"> The ICA bottom. </param>
+            <param label="ICA Top" format="sql-range" name="ica_top" required="false" type="NMITAICATop"> The ICA top. </param>
+            <param label="ICA Units" name="ica_units" required="false" type="NMITAICAUnits"> The ICA units. </param>
+        	<param label="Bottom Epoch" name="epoch_name_bottom" required="false" type="TimeScaleEpochName"> The name of the bottom epoch. </param>
+        	<param label="Top Epoch" name="epoch_name_top" required="false" type="TimeScaleEpochName"> The name of the top epoch. </param>
+        	<param label="Bottom Nannozone" name="nannozone_bottom" required="false" type="NMITANannozoneName"> The name of the bottom nannozone. </param>
+        	<param label="Top Nannozone" name="nannozone_top" required="false" type="NMITANannozoneName"> The name of the top nannozone. </param>
+        </inputs>
+        <outputs>
+            <param label="Sample ID" name="coll_ev_sam_no" required="true" type="NMITASampleID"> The sample id. </param>
+            <param label="Country" name="country_name" required="true" type="NMITACountryName"> The country name. </param>
+            <param label="Country Region" name="country_region" required="true" type="NMITACountryRegion"> The region. </param>
+            <param label="Locality" name="locality_name" required="true" type="NMITALocalityName"> The locality name. </param>
+            <param label="Formation" name="formation_name" required="true" type="NMITAFormationName"> The formation name. </param>
+            <param label="Region" name="region" required="true" type="NMITARegion"> The region. </param>
+            <param label="Strat Unit" name="strat_unit_name" required="true" type="NMITAStratUnitName"> The strat unit name. </param>
+            <param label="Latitude" name="latitude" required="true" type="LatitudeDD"> The latitude (in decimal degrees). </param>
+            <param label="Longitude" name="longitude" required="true" type="LongitudeDD"> The longitude (in decimal degrees). </param>
+            <param label="ICA Bottom" name="ica_bottom" required="true" type="NMITAICABottom"> The ICA bottom. </param>
+            <param label="ICA Top" name="ica_top" required="true" type="NMITAICATop"> The ICA top. </param>
+            <param label="ICA Units" name="ica_units" required="true" type="NMITAICAUnits"> The ICA units. </param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>xls</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>nmita</database>
+        <sql>
+            <![CDATA[
+                SELECT 
+    				a.COLL_EV_SAM_NO, b.COUNTRY_NAME, b.COUNTRY_REGION, b.LOCALITY_NAME, b.FORMATION_NAME, 
+    				b.REGION, a.STRAT_UNIT_NAME, b.LATITUDE, b.LONGITUDE, 
+    				b.ICA_BOTTOM, b.ICA_TOP, b.ICA_UNITS
+				FROM
+    				NMITA.LOCALITY a, NMITA.STRAT b
+				WHERE
+    				a.STRAT_UNIT_NAME = b.STRAT_UNIT_NAME
+    				<#if ica_bottom?has_content>
+                	AND b.ica_bottom ${ica_bottom}
+                	</#if>
+                	<#if ica_top?has_content>
+                	AND b.ica_top ${ica_top}
+                	</#if>
+                	<#if ica_units?has_content>
+                	AND UPPER(b.ica_units) LIKE UPPER('${ica_units}')
+                	</#if>
+                	<#if epoch_name_bottom?has_content>
+                	AND UPPER(b.epoch_name_bottom) LIKE UPPER('${epoch_name_bottom}')
+                	</#if>
+                	<#if epoch_name_top?has_content>
+                	AND UPPER(b.epoch_name_top) LIKE UPPER('${epoch_name_top}')
+                	</#if>
+                	<#if nannozone_bottom?has_content>
+                	AND UPPER(b.nannozone_bottom) LIKE UPPER('${nannozone_bottom}')
+                	</#if>
+                	<#if nannozone_top?has_content>
+                	AND UPPER(b.nannozone_top) LIKE UPPER('${nannozone_top}')
+                	</#if>
+				ORDER BY
+    				b.ICA_BOTTOM, b.FORMATION_NAME, b.COUNTRY_NAME
+            ]]>
+        </sql>
+    </query>
+    <query xsi:type="qdf:SQLQuery">
+        <id>nmita.nmita.samples.taxa</id>
+        <title>Samples by Taxa</title>
+        <description>
+        	Gets samples from NMITA by taxa.
+        </description>
+        <author>searches@chronos.org</author>
+        <date>2006/06/19</date>
+        <labels>
+            <label>NMITA</label>
+        </labels>
+        <providers>
+            <provider>NMITA</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+        	<param label="Genus" name="genus_name" required="false" type="Genus"> The genus. </param>
+        	<param label="Species" name="species_name" required="false" type="Species"> The species. </param>
+        </inputs>
+        <outputs>
+            <param label="Sample ID" name="coll_ev_sam_no" required="true" type="NMITASampleID"> The sample id. </param>
+            <param label="Genus" name="genus_name" required="true" type="Genus"> The genus. </param>
+        	<param label="Species" name="species_name" required="true" type="Species"> The species. </param>
+            <param label="Country" name="country_name" required="true" type="NMITACountryName"> The country name. </param>
+            <param label="Country Region" name="country_region" required="true" type="NMITACountryRegion"> The region. </param>
+            <param label="Locality" name="locality_name" required="true" type="NMITALocalityName"> The locality name. </param>
+            <param label="Formation" name="formation_name" required="true" type="NMITAFormationName"> The formation name. </param>
+            <param label="Region" name="region" required="true" type="NMITARegion"> The region. </param>
+            <param label="Strat Unit" name="strat_unit_name" required="true" type="NMITAStratUnitName"> The strat unit name. </param>
+            <param label="Latitude" name="latitude" required="true" type="LatitudeDD"> The latitude (in decimal degrees). </param>
+            <param label="Longitude" name="longitude" required="true" type="LongitudeDD"> The longitude (in decimal degrees). </param>
+            <param label="ICA Bottom" name="ica_bottom" required="true" type="NMITAICABottom"> The ICA bottom. </param>
+            <param label="ICA Top" name="ica_top" required="true" type="NMITAICATop"> The ICA top. </param>
+            <param label="ICA Units" name="ica_units" required="true" type="NMITAICAUnits"> The ICA units. </param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>xls</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>nmita</database>
+        <sql>
+            <![CDATA[
+                SELECT 
+    				a.COLL_EV_SAM_NO, c.GENUS_NAME, c.SPECIES_NAME, b.COUNTRY_NAME, b.COUNTRY_REGION, 
+    				b.LOCALITY_NAME, b.FORMATION_NAME, b.REGION, a.STRAT_UNIT_NAME, b.LATITUDE, 
+    				b.LONGITUDE, b.ICA_BOTTOM, b.ICA_TOP, b.ICA_UNITS
+				FROM
+    				NMITA.LOCALITY a, NMITA.STRAT b, NMITA.SPECIES c
+				WHERE
+    				a.STRAT_UNIT_NAME = b.STRAT_UNIT_NAME
+    				AND a.COLL_EV_SAM_NO = c.COLL_EV_SAM_NO
+                	<#if genus_name?has_content>
+                	AND UPPER(c.genus_name) LIKE UPPER('${genus_name}')
+                	</#if>
+                	<#if species_name?has_content>
+                	AND UPPER(c.species_name) LIKE UPPER('${species_name}')
+                	</#if>
+				ORDER BY
+    				b.ICA_BOTTOM, b.FORMATION_NAME, c.GENUS_NAME, c.SPECIES_NAME
+            ]]>
+        </sql>
+    </query>
+    <query xsi:type="qdf:SQLQuery">
+        <id>nmita.nmita.samples.advanced</id>
+        <title>Samples (Advanced)</title>
+        <description>
+        	Gets samples from NMITA by locality, age, and/or taxa.
+        </description>
+        <author>searches@chronos.org</author>
+        <date>2006/06/19</date>
+        <labels>
+            <label>NMITA</label>
+        </labels>
+        <providers>
+            <provider>NMITA</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+        	<param label="Genus" name="genus_name" required="false" type="Genus"> The genus. </param>
+        	<param label="Species" name="species_name" required="false" type="Species"> The species. </param>
+        	<param label="Country" name="country_name" required="false" type="NMITACountryName">Limit to a specific country.</param>
+            <param label="Country Region" name="country_region" required="false" type="NMITACountryRegion">Limit to a specific country region.</param>
+            <param label="Locality" name="locality_name" required="false" type="NMITALocalityName">Limit to a specific locality.</param>
+            <param label="Formation" name="formation_name" required="false" type="NMITAFormationName">Limit to a specific formation.</param>
+            <param format="sql-range" label="Latitude" name="latitude" required="false" type="LatitudeDD"> Limit to samples from a latitude (in decimal degrees)
+                range. You may specify the range as 'lat1-lat2', '&lt; lat1', or '&gt; lat1'. Valid values for the latitude are -90 to 90. Positive
+                latitudes correspond to the northern hemisphere negative latitudes correspond to the southern hemisphere. </param>
+            <param format="sql-range" label="Longitude" name="longitude" required="false" type="LongitudeDD"> Limit to samples from a longitude (in decimal
+                degrees) range. You may specify the range as 'long1-long2', '&lt; long1', or '&gt; long1'. Valid values for the longitude are -180 to
+                180. Positive longitudes correspond to eastern longitudes and negative longitudes correspond to western longitudes. </param>
+            <param label="ICA Bottom" format="sql-range" name="ica_bottom" required="false" type="NMITAICABottom"> The ICA bottom. </param>
+            <param label="ICA Top" format="sql-range" name="ica_top" required="false" type="NMITAICATop"> The ICA top. </param>
+            <param label="ICA Units" name="ica_units" required="false" type="NMITAICAUnits"> The ICA units. </param>
+        	<param label="Bottom Epoch" name="epoch_name_bottom" required="false" type="TimeScaleEpochName"> The name of the bottom epoch. </param>
+        	<param label="Top Epoch" name="epoch_name_top" required="false" type="TimeScaleEpochName"> The name of the top epoch. </param>
+        	<param label="Bottom Nannozone" name="nannozone_bottom" required="false" type="NMITANannozoneName"> The name of the bottom nannozone. </param>
+        	<param label="Top Nannozone" name="nannozone_top" required="false" type="NMITANannozoneName"> The name of the top nannozone. </param>
+        </inputs>
+        <outputs>
+            <param label="Sample ID" name="coll_ev_sam_no" required="true" type="NMITASampleID"> The sample id. </param>
+            <param label="Genus" name="genus_name" required="true" type="Genus"> The genus. </param>
+        	<param label="Species" name="species_name" required="true" type="Species"> The species. </param>
+            <param label="Country" name="country_name" required="true" type="NMITACountryName"> The country name. </param>
+            <param label="Country Region" name="country_region" required="true" type="NMITACountryRegion"> The region. </param>
+            <param label="Locality" name="locality_name" required="true" type="NMITALocalityName"> The locality name. </param>
+            <param label="Formation" name="formation_name" required="true" type="NMITAFormationName"> The formation name. </param>
+            <param label="Region" name="region" required="true" type="NMITARegion"> The region. </param>
+            <param label="Strat Unit" name="strat_unit_name" required="true" type="NMITAStratUnitName"> The strat unit name. </param>
+            <param label="Latitude" name="latitude" required="true" type="LatitudeDD"> The latitude (in decimal degrees). </param>
+            <param label="Longitude" name="longitude" required="true" type="LongitudeDD"> The longitude (in decimal degrees). </param>
+            <param label="ICA Bottom" name="ica_bottom" required="true" type="NMITAICABottom"> The ICA bottom. </param>
+            <param label="ICA Top" name="ica_top" required="true" type="NMITAICATop"> The ICA top. </param>
+            <param label="ICA Units" name="ica_units" required="true" type="NMITAICAUnits"> The ICA units. </param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>xls</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>nmita</database>
+        <sql>
+            <![CDATA[
+                SELECT 
+    				a.COLL_EV_SAM_NO, c.GENUS_NAME, c.SPECIES_NAME, b.COUNTRY_NAME, b.COUNTRY_REGION, 
+    				b.LOCALITY_NAME, b.FORMATION_NAME, b.REGION, a.STRAT_UNIT_NAME, b.LATITUDE, 
+    				b.LONGITUDE, b.ICA_BOTTOM, b.ICA_TOP, b.ICA_UNITS
+				FROM
+    				NMITA.LOCALITY a, NMITA.STRAT b, NMITA.SPECIES c
+				WHERE
+    				a.STRAT_UNIT_NAME = b.STRAT_UNIT_NAME
+    				AND a.COLL_EV_SAM_NO = c.COLL_EV_SAM_NO
+                	<#if genus_name?has_content>
+                	AND UPPER(c.genus_name) LIKE UPPER('${genus_name}')
+                	</#if>
+                	<#if species_name?has_content>
+                	AND UPPER(c.species_name) LIKE UPPER('${species_name}')
+                	</#if>
+                	<#if country_name?has_content>
+                	AND UPPER(b.country_name) LIKE UPPER('${country_name}')
+                	</#if>
+                	<#if country_region?has_content>
+                	AND UPPER(b.country_region) LIKE UPPER('${country_region}')
+                	</#if>
+                	<#if locality_name?has_content>
+                	AND UPPER(b.locality_name) LIKE UPPER('${locality_name}')
+                	</#if>
+                	<#if formation_name?has_content>
+                	AND UPPER(b.formation_name) LIKE UPPER('${formation_name}')
+                	</#if>
+    				<#if latitude?has_content>
+                	AND b.latitude ${latitude}
+                	</#if>
+                	<#if longitude?has_content>
+                	AND b.longitude ${longitude}
+                	</#if>
+                	<#if ica_bottom?has_content>
+                	AND b.ica_bottom ${ica_bottom}
+                	</#if>
+                	<#if ica_top?has_content>
+                	AND b.ica_top ${ica_top}
+                	</#if>
+                	<#if ica_units?has_content>
+                	AND UPPER(b.ica_units) LIKE UPPER('${ica_units}')
+                	</#if>
+                	<#if epoch_name_bottom?has_content>
+                	AND UPPER(b.epoch_name_bottom) LIKE UPPER('${epoch_name_bottom}')
+                	</#if>
+                	<#if epoch_name_top?has_content>
+                	AND UPPER(b.epoch_name_top) LIKE UPPER('${epoch_name_top}')
+                	</#if>
+                	<#if nannozone_bottom?has_content>
+                	AND UPPER(b.nannozone_bottom) LIKE UPPER('${nannozone_bottom}')
+                	</#if>
+                	<#if nannozone_top?has_content>
+                	AND UPPER(b.nannozone_top) LIKE UPPER('${nannozone_top}')
+                	</#if>
+				ORDER BY
+    				b.ICA_BOTTOM, b.FORMATION_NAME, c.GENUS_NAME, c.SPECIES_NAME
+            ]]>
+        </sql>
+    </query>
+</qdf:qdf>

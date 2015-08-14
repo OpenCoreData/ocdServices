@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<qdf:qdf xmlns:qdf="http://services.chronos.org/qdf/QDF" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://services.chronos.org/qdf/QDF ../qdf.xsd">
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.ii.conop9.data</id>
+        <title>CONOP9 Data Search</title>
+        <description>Gets taxa data from Neptune, Janus, and Paleostrat for use in CONOP9 runs.</description>
+        <author>searches@chronos.org</author>
+        <date>2006/02/03</date>
+        <labels>
+            <label>CONOP9</label>
+        </labels>
+        <providers>
+            <provider>Neputne</provider>
+            <provider>Janus</provider>
+            <provider>Paleostrat</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param format="taxon-name" label="Taxon Name" name="taxon" required="false" type="NeptuneTaxonName">Constrain to samples that contain the specified
+                taxon name. This can be a genera ('Globigerinoides') or a genus-species combination ('Globigerinoides mitra' or 'G. mitra').</param>
+            <param label="Hole ID" name="hole_id" required="false" type="NeptuneHoleID"> Limit to samples from a particular Neptune hole id. </param>
+            <param format="time-range" label="FAD" name="fad" required="false" type="AgeRange"> Limit to FADs from a particular time range. You
+                may specify the range with numerical ages or time scale stage names as 'ma1-ma2', '&lt; ma1', '&gt; ma1', 'stage1', 'stage1-stage2',
+                '&lt; stage1', or '&gt; stage1'. </param>
+            <param format="time-range" label="LAD" name="lad" required="false" type="AgeRange"> Limit to LADs from a particular time range. You
+                may specify the range with numerical ages or time scale stage names as 'ma1-ma2', '&lt; ma1', '&gt; ma1', 'stage1', 'stage1-stage2',
+                '&lt; stage1', or '&gt; stage1'. </param>
+        </inputs>
+        <outputs>
+            <param label="Source" name="source" required="true" type="DataSource">The source of this data.</param>
+            <param label="Hole ID" name="hole_id" required="true" type="NeptuneHoleID"> The ID of the hole in Neptune. </param>
+            <param label="Genus" name="genus" required="true" type="Genus" format="proper-case"> The genus of the taxon occurring in the sample. </param>
+            <param label="Species" name="species" required="true" type="Species" format="lower-case"> The species of the taxon occurring in the sample. </param>
+            <param label="Taxon ID" name="taxon_id" required="true" type="NeptuneTaxonID">The ID of the taxon in Neptune.</param>
+            <param label="LAD" name="lad" required="true" type="LAD">The LAD.</param>
+            <param label="FAD" name="fad" required="true" type="FAD">The FAD.</param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>xls</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>ii</database>
+        <sql>
+            <![CDATA[
+                SELECT 
+                    db_name as source, 
+                    hole_id, 
+                    genus,
+                    species,
+                    taxon_id, 
+                    lad, 
+                    fad
+                FROM 
+                    CHRONOS.CONOP
+                WHERE
+                    'TRUE' = 'TRUE'
+                    <#if genus?has_content>
+                    AND UPPER(genus) LIKE UPPER('${genus}')
+                    </#if>
+                    <#if species?has_content>
+                    AND UPPER(species) LIKE UPPER('${species}')
+                    </#if>
+                    <#if hole_id?has_content>
+                    AND UPPER(hole_id) LIKE UPPER('${hole_id}')
+                    </#if>
+                    <#if lad?has_content>
+                    AND lad ${lad}
+                    </#if>
+                    <#if fad?has_content>
+                    AND fad ${fad}
+                    </#if>
+            ]]>
+        </sql>
+    </query>
+</qdf:qdf>

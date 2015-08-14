@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<qdf:qdf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://services.chronos.org/qdf/QDF ../qdf.xsd"
+ xmlns:qdf="http://services.chronos.org/qdf/QDF">
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.xqe.tagcloud</id>
+        <title>XQE TagCloud</title>
+        <description>Builds a tag cloud from the recent XQE searches.</description>
+        <author>searches@chronos.org</author>
+        <date>2006/01/09</date>
+        <labels>
+            <label>TagCloud</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>false</display>
+        <interfaces/>
+        <inputs/>
+        <outputs>
+            <param label="Tag" name="tag" required="true" type="String"></param>
+            <param label="Count" name="count" required="true" type="Count"></param>
+        </outputs>
+        <serializers>
+            <serializer>tagcloud</serializer>
+        </serializers>
+        <database>xqestats</database>
+        <sql>
+            <![CDATA[
+            SELECT
+                LOWER(TRIM(b.param_value)) as tag, COUNT(TRIM(b.param_value)) as count
+            FROM
+                chronos_xqe_event a, chronos_xqe_event_param b, chronos_xqe_param c
+            WHERE
+                a.event_id = b.event_id
+                AND b.param_value not ilike '%href%'
+                AND b.param_value not ilike '%http%'
+                AND b.param_id = c.param_id
+                AND c.param_type != 'ExtraParam'
+                AND c.param_type != 'Flag'
+                AND c.param_type != 'Tag'
+                AND c.param_type != 'QDFTarget'
+                AND a.event_id NOT IN (SELECT event_id FROM chronos_xqe_error)
+                AND a.event_timestamp > date 'now' - interval '7 day'
+            GROUP BY LOWER(TRIM(b.param_value))
+            ORDER BY count DESC
+            LIMIT 250
+            ]]>
+        </sql>
+    </query>
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.xqe.tagcloud.tag</id>
+        <title>XQE TagCloud Tag</title>
+        <description>Builds XQE urls for a particular tag.</description>
+        <author>searches@chronos.org</author>
+        <date>2006/01/09</date>
+        <labels>
+            <label>Utility</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param label="Tag" name="tag" required="true" type="Tag"></param>
+        </inputs>
+        <outputs>
+            <param label="Event ID" name="event_id" required="true" type="String"></param>
+            <param label="Query Name" name="query_name" required="true" type="String"></param>
+            <param label="Param Name" name="param_name" required="true" type="String"></param>
+            <param label="Param Value" name="param_value" required="true" type="String"></param>
+        </outputs>
+        <serializers>
+            <serializer>taglink</serializer>
+        </serializers>
+        <database>xqestats</database>
+        <sql>
+            <![CDATA[
+            SELECT DISTINCT
+                a.event_id, d.query_name, c.param_name, TRIM(b.param_value)
+            FROM
+                chronos_xqe_event a, chronos_xqe_event_param b, chronos_xqe_param c,
+                chronos_xqe_query d, chronos_xqe_error e
+            WHERE
+                a.event_id = b.event_id
+                AND a.query_id = d.query_id
+                AND b.param_id = c.param_id
+                AND c.param_type != 'ExtraParam'
+                AND a.event_id IN (
+                    SELECT DISTINCT
+                        a.event_id 
+                    FROM 
+                        chronos_xqe_event a, chronos_xqe_event_param b, chronos_xqe_param c, chronos_xqe_error d
+                    WHERE 
+                        a.event_id = b.event_id
+                        AND b.param_id = c.param_id
+                        AND c.param_type != 'ExtraParam'
+                        AND c.param_type != 'Tag'
+                        AND a.event_timestamp > date 'now' - interval '7 day'
+                        AND a.event_id NOT IN (SELECT event_id FROM chronos_xqe_error)
+                        AND LOWER(TRIM(b.param_value)) = LOWER(TRIM('${tag}')) LIMIT 25
+                )
+            ]]>
+        </sql>
+    </query>
+</qdf:qdf>

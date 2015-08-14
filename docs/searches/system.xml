@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+    This QDF document contains various system-level commands.  These commands
+    should always be included in any namespace.
+ -->
+
+<qdf:qdf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://services.chronos.org/qdf/QDF ../qdf.xsd"
+ xmlns:qdf="http://services.chronos.org/qdf/QDF">
+    <query xsi:type="qdf:QDFQuery">
+        <id>qdf</id>
+        <title>QDF Service</title>
+        <description>Executes queries against the contents of the QDF document.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/09/21</date>
+        <labels>
+            <label>Utility</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param label="Target" name="target" required="true" type="QDFTarget"/>
+        </inputs>
+        <outputs/>
+        <serializers>
+            <serializer>xml</serializer>
+        </serializers>
+    </query>
+    <query xsi:type="qdf:NexusQuery">
+        <id>nexus</id>
+        <title>Nexus Service</title>
+        <description>Provides nexus information about a query.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/09/21</date>
+        <labels>
+            <label>Utility</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param label="Search" name="target" required="true" type="QDFTarget"/>
+        </inputs>
+        <outputs/>
+        <serializers/>
+    </query>
+    <query xsi:type="qdf:MessageQuery">
+        <id>talkback</id>
+        <title>TalkBack Service</title>
+        <description>Allows users to send messages.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/11/16</date>
+        <labels>
+            <label>Utility</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param label="To" name="to" required="true" type="MessageRecipient"/>
+            <param label="From" name="from" required="true" type="MessageSender"/>
+            <param label="Content" name="text" required="true" type="MessageContent"/>
+        </inputs>
+        <outputs/>
+        <serializers>
+            <serializer>null</serializer>
+        </serializers>
+    </query>
+</qdf:qdf>

@@ -1,0 +1,646 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<qdf:qdf xmlns:qdf="http://services.chronos.org/qdf/QDF" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://services.chronos.org/qdf/QDF ../qdf.xsd">
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.neptune.samples.location</id>
+        <title>Samples by Location</title>
+        <description>Get samples from the Neptune database constrained by location.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/10/17</date>
+        <labels>
+            <label>Neptune</label>
+        </labels>
+        <providers>
+            <provider>Neptune</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param label="Leg" name="leg" required="false" type="Leg">Limit to samples from a specific leg.</param>
+            <param label="Site" name="site" required="false" type="Site">Limit to samples from a specific site.</param>
+            <param label="Hole" name="hole" required="false" type="Hole">Limit to samples from a specific hole.</param>
+            <param label="Hole ID" name="hole_id" required="false" type="NeptuneHoleID"> Limit to samples from a particular Neptune hole id. </param>
+            <param format="sql-range" label="Latitude" name="latitude" required="false" type="LatitudeDD"> Limit to samples from a latitude (in decimal degrees)
+                range. You may specify the range as 'lat1-lat2', '&lt; lat1', or '&gt; lat1'. Valid values for the latitude are -90 to 90. Positive
+                latitudes correspond to the northern hemisphere negative latitudes correspond to the southern hemisphere. </param>
+            <param format="sql-range" label="Longitude" name="longitude" required="false" type="LongitudeDD"> Limit to samples from a longitude (in decimal
+                degrees) range. You may specify the range as 'long1-long2', '&lt; long1', or '&gt; long1'. Valid values for the longitude are -180 to
+                180. Positive longitudes correspond to eastern longitudes and negative longitudes correspond to western longitudes. </param>
+            <param format="neptune-ocean-code" label="Ocean" name="ocean" required="false" type="NeptuneOceanCode"> Limit to samples from a particular ocean. </param>
+            <param label="Include only samples that have been dated" name="include_dated" required="false" type="Flag"/>
+        </inputs>
+        <outputs>
+            <param label="Sample Age" name="sample_age_ma" required="true" type="AgeMA"> The age of the sample. </param>
+            <param label="Sample Depth" name="sample_depth_mbsf" required="true" type="DepthMBSF"> The depth of the sample. </param>
+            <param label="Water Depth" name="water_depth" required="true" type="WaterDepth"> The water depth of the hole that the sample was taken from. </param>
+            <param label="Leg" name="leg" required="true" type="Leg">The leg.</param>
+            <param label="Site" name="site" required="true" type="Site">The site.</param>
+            <param label="Hole" name="hole" required="true" type="Hole">The hole</param>
+            <param label="Latitude" name="latitude" required="true" type="LatitudeDD"> The latitude (in decimal degrees) of the hole that the sample was taken
+                from. </param>
+            <param label="Longitude" name="longitude" required="true" type="LongitudeDD"> The longitude (in decimal degrees) of the hole that the sample was
+                taken from. </param>
+            <param format="neptune-ocean-code" label="Ocean" name="ocean_code" required="true" type="NeptuneOceanCode"> The ocean where the hole is
+                located. </param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>xls</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>Neptune</database>
+        <sql>
+            <![CDATA[
+            SELECT 
+                a.sample_age_ma, a.sample_depth_mbsf, c.water_depth, c.leg, c.site, c.hole, 
+                c.latitude, c.longitude, c.ocean_code
+            FROM 
+                neptune_sample a, neptune_core b, neptune_hole_summary c
+            WHERE
+                a.hole_id = b.hole_id 
+                AND b.hole_id = c.hole_id 
+                AND a.core = b.core
+                <#if include_dated?has_content && include_dated != 'false' && include_dated != 'no'>
+                AND a.sample_age_ma IS NOT NULL 
+                </#if>
+                <#if latitude?has_content>
+                AND c.latitude ${latitude}
+                </#if>
+                <#if longitude?has_content>
+                AND c.longitude ${longitude}
+                </#if>
+                <#if ocean?has_content>
+                AND c.ocean_code = '${ocean}'
+                </#if>
+                <#if hole_id?has_content>
+                AND c.hole_id = '${hole_id}'
+                </#if>
+                <#if leg?has_content>
+                AND c.leg = '${leg}'
+                </#if>
+                <#if site?has_content>
+                AND c.site = '${site}'
+                </#if>
+                <#if hole?has_content>
+                AND c.hole = '${hole}'
+                </#if>
+            ORDER BY 
+                a.sample_age_ma
+            ]]>
+        </sql>
+    </query>
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.neptune.samples.age</id>
+        <title>Samples by Age</title>
+        <description>Get samples from the Neptune database constrained by age.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/10/17</date>
+        <labels>
+            <label>Neptune</label>
+        </labels>
+        <providers>
+            <provider>Neptune</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param format="time-range" label="Time Range" name="time_range" required="true" type="AgeRange"> Limit to samples from a particular time range. You
+                may specify the range with numerical ages or time scale stage names as 'ma1-ma2', '&lt; ma1', '&gt; ma1', 'stage1', 'stage1-stage2',
+                '&lt; stage1', or '&gt; stage1'. </param>
+        </inputs>
+        <outputs>
+            <param label="Sample Age" name="sample_age_ma" required="true" type="AgeMA"> The age of the sample. </param>
+            <param label="Sample Depth" name="sample_depth_mbsf" required="true" type="DepthMBSF"> The depth of the sample. </param>
+            <param label="Water Depth" name="water_depth" required="true" type="WaterDepth"> The water depth of the hole that the sample was taken from. </param>
+            <param label="Leg" name="leg" required="true" type="Leg">The leg.</param>
+            <param label="Site" name="site" required="true" type="Site">The site.</param>
+            <param label="Hole" name="hole" required="true" type="Hole">The hole</param>
+            <param label="Latitude" name="latitude" required="true" type="LatitudeDD"> The latitude (in decimal degrees) of the hole that the sample was taken
+                from. </param>
+            <param label="Longitude" name="longitude" required="true" type="LongitudeDD"> The longitude (in decimal degrees) of the hole that the sample was
+                taken from. </param>
+            <param format="neptune-ocean-code" label="Ocean" name="ocean_code" required="true" type="NeptuneOceanCode"> The ocean where the hole is
+                located. </param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>xls</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>Neptune</database>
+        <sql>
+            <![CDATA[
+            SELECT 
+                a.sample_age_ma, a.sample_depth_mbsf, c.water_depth, c.leg, c.site, c.hole, c.latitude, c.longitude,
+                c.ocean_code
+            FROM 
+                neptune_sample a, neptune_core b, neptune_hole_summary c
+            WHERE
+                a.hole_id = b.hole_id 
+                AND b.hole_id = c.hole_id 
+                AND a.core = b.core
+                AND a.sample_age_ma ${time_range}
+            ORDER BY 
+                a.sample_age_ma
+            ]]>
+        </sql>
+    </query>
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.neptune.samples.taxon</id>
+        <title>Samples by Taxa Occurrences</title>
+        <description>Get samples from the Neptune database constrained by taxa occurrences.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/10/17</date>
+        <labels>
+            <label>Neptune</label>
+        </labels>
+        <providers>
+            <provider>Neptune</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param format="taxon-name" label="Taxon Name" name="taxon" required="true" type="NeptuneTaxonName">Constrain to samples that contain the specified
+                taxon name. This can be a genera ('Globigerinoides') or a genus-species combination ('Globigerinoides mitra' or 'G. mitra').</param>
+            <param format="neptune-fossil-group" label="Fossil Group" name="fossil_group" required="false" type="NeptuneFossilGroup"> Limit to samples
+                containing taxon occurrences from a particular fossil group. </param>
+            <param label="Include Synonyms" name="include_synonyms" required="false" type="Flag"/>
+            <param label="Include only samples that have been dated" name="include_dated" required="false" type="Flag"/>
+        </inputs>
+        <outputs>
+            <param label="Sample Age" name="sample_age_ma" required="true" type="AgeMA"> The age of the sample. </param>
+            <param label="Sample Depth" name="sample_depth_mbsf" required="true" type="DepthMBSF"> The depth of the sample. </param>
+            <param label="Water Depth" name="water_depth" required="true" type="WaterDepth"> The water depth of the hole that the sample was taken from. </param>
+            <param label="Leg" name="leg" required="true" type="Leg">The leg.</param>
+            <param label="Site" name="site" required="true" type="Site">The site.</param>
+            <param label="Hole" name="hole" required="true" type="Hole">The hole</param>
+            <param label="Hole ID" name="hole_id" required="true" type="NeptuneHoleID"> The ID of the hole in Neptune. </param>
+            <param label="Latitude" name="latitude" required="true" type="LatitudeDD"> The latitude (in decimal degrees) of the hole that the sample was taken
+                from. </param>
+            <param label="Longitude" name="longitude" required="true" type="LongitudeDD"> The longitude (in decimal degrees) of the hole that the sample was
+                taken from. </param>
+            <param format="neptune-ocean-code" label="Ocean" name="ocean_code" required="true" type="NeptuneOceanCode"> The ocean where the hole is
+                located. </param>
+            <param label="Taxon Abundance" name="taxon_abundance" required="true" type="NeptuneTaxonAbundance"> The abundance of the taxon within the sample. </param>
+            <param label="Taxon Name" name="taxon" required="true" type="TaxonName"> The name of the taxon occurring in the sample. </param>
+            <param format="neptune-fossil-group" label="Fossil Group" name="fossil_group" required="true" type="NeptuneFossilGroup"> The fossil
+                group of the taxa occuring in the sample. </param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>xls</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>Neptune</database>
+        <sql>
+            <![CDATA[
+            SELECT
+                a.sample_age_ma, a.sample_depth_mbsf, c.water_depth, c.leg, c.site, c.hole, a.hole_id, 
+                c.latitude, c.longitude, c.ocean_code, d.taxon_abundance, 
+                TRIM(INITCAP(e.genus) || ' ' || LOWER(e.species) || ' ' || LOWER(COALESCE(e.subspecies,' '))) AS taxon, e.fossil_group 
+            FROM 
+                neptune_sample a, neptune_core b, neptune_hole_summary c, neptune_sample_taxa d, 
+                neptune_taxonomy e <#if include_synonyms?has_content>, neptune_taxonomy_synonym f</#if> 
+            WHERE
+                a.hole_id = b.hole_id 
+                AND b.hole_id = c.hole_id 
+                AND a.core = b.core 
+                AND a.sample_id = d.sample_id 
+                AND e.taxon_id = d.taxon_id
+                <#if include_synonyms?has_content && include_synonyms != 'false' && include_synonyms != 'no'>
+                AND e.taxon_id = f.taxon_id
+                AND f.taxsyn_id IN (
+                    SELECT z.taxsyn_id FROM neptune_taxonomy y, neptune_taxonomy_synonym z
+                    WHERE 
+                        y.taxon_id = z.taxon_id
+                    <#if genus?has_content>
+                        AND y.genus ILIKE '${genus}'
+                    </#if>
+                    <#if species?has_content>
+                        AND y.species ILIKE '${species}'
+                    </#if>
+                    <#if subspecies?has_content>
+                        AND y.subspecies ILIKE '${subspecies}'
+                    </#if>
+                    <#if fossil_group?has_content>
+                    AND y.fossil_group = '${fossil_group}'
+                    </#if>
+                )
+                <#else/>
+                    <#if genus?has_content>
+                    AND e.genus ILIKE '${genus}'
+                    </#if>
+                    <#if species?has_content>
+                    AND e.species ILIKE '${species}'
+                    </#if>
+                    <#if subspecies?has_content>
+                    AND e.subspecies ILIKE '${subspecies}'
+                    </#if>
+                    <#if fossil_group?has_content>
+                    AND e.fossil_group = '${fossil_group}'
+                    </#if>
+                </#if>
+                <#if include_dated?has_content && include_dated != 'false' && include_dated != 'no'>
+                AND a.sample_age_ma IS NOT NULL 
+                AND a.sample_age_ma > 0
+                </#if> 
+            ORDER BY 
+                a.sample_age_ma
+            ]]>
+        </sql>
+    </query>
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.neptune.samples.advanced</id>
+        <title>Samples Search (Advanced)</title>
+        <description>Get samples from the Neptune database constrained by location, age, and/or taxon.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/10/17</date>
+        <labels>
+            <label>Neptune</label>
+        </labels>
+        <providers>
+            <provider>Neptune</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param format="time-range" label="Time Range" name="time_range" required="false" type="AgeRange"> Limit to samples from a particular time range. You
+                may specify the range with numerical ages or time scale stage names as 'ma1-ma2', '&lt; ma1', '&gt; ma1', 'stage1', 'stage1-stage2',
+                '&lt; stage1', or '&gt; stage1'. </param>
+            <param label="Leg" name="leg" required="false" type="Leg">Limit to samples from a specific leg.</param>
+            <param label="Site" name="site" required="false" type="Site">Limit to samples from a specific site.</param>
+            <param label="Hole" name="hole" required="false" type="Hole">Limit to samples from a specific hole.</param>
+            <param label="Hole ID" name="hole_id" required="false" type="NeptuneHoleID"> Limit to samples from a particular Neptune hole id. </param>
+            <param format="sql-range" label="Latitude" name="latitude" required="false" type="LatitudeDD"> Limit to samples from a latitude (in decimal degrees)
+                range. You may specify the range as 'lat1-lat2', '&lt; lat1', or '&gt; lat1'. Valid values for the latitude are -90 to 90. Positive
+                latitudes correspond to the northern hemisphere negative latitudes correspond to the southern hemisphere. </param>
+            <param format="sql-range" label="Longitude" name="longitude" required="false" type="LongitudeDD"> Limit to samples from a longitude (in decimal
+                degrees) range. You may specify the range as 'long1-long2', '&lt; long1', or '&gt; long1'. Valid values for the longitude are -180 to
+                180. Positive longitudes correspond to eastern longitudes and negative longitudes correspond to western longitudes. </param>
+            <param format="neptune-ocean-code" label="Ocean" name="ocean" required="false" type="NeptuneOceanCode"> Limit to samples from a particular ocean. </param>
+            <param format="taxon-name" label="Taxon Name" name="taxon" required="false" type="NeptuneTaxonName">Constrain to samples that contain the specified
+                taxon name. This can be a genera ('Globigerinoides') or a genus-species combination ('Globigerinoides mitra' or 'G. mitra').</param>
+            <param format="neptune-fossil-group" label="Fossil Group" name="fossil_group" required="false" type="NeptuneFossilGroup"> Limit to samples
+                containing taxon occurrences from a particular fossil group. </param>
+            <param label="Include Synonyms" name="include_synonyms" required="false" type="Flag"/>
+            <param label="Include only samples that have been dated" name="include_dated" required="false" type="Flag"/>
+        </inputs>
+        <outputs>
+            <param label="Sample Age" name="sample_age_ma" required="true" type="AgeMA"> The age of the sample. </param>
+            <param label="Sample Depth" name="sample_depth_mbsf" required="true" type="DepthMBSF"> The depth of the sample. </param>
+            <param label="Water Depth" name="water_depth" required="true" type="WaterDepth"> The water depth of the hole that the sample was taken from. </param>
+            <param label="Leg" name="leg" required="true" type="Leg">The leg.</param>
+            <param label="Site" name="site" required="true" type="Site">The site.</param>
+            <param label="Hole" name="hole" required="true" type="Hole">The hole</param>
+            <param label="Hole ID" name="hole_id" required="true" type="NeptuneHoleID"> The ID of the hole in Neptune. </param>
+            <param label="Latitude" name="latitude" required="true" type="LatitudeDD"> The latitude (in decimal degrees) of the hole that the sample was taken
+                from. </param>
+            <param label="Longitude" name="longitude" required="true" type="LongitudeDD"> The longitude (in decimal degrees) of the hole that the sample was
+                taken from. </param>
+            <param format="neptune-ocean-code" label="Ocean" name="ocean_code" required="true" type="NeptuneOceanCode"> The ocean where the hole is
+                located. </param>
+            <param label="Taxon Abundance" name="taxon_abundance" required="true" type="NeptuneTaxonAbundance"> The abundance of the taxon within the sample. </param>
+            <param label="Taxon Name" name="taxon" required="true" type="TaxonName"> The name of the taxon occurring in the sample. </param>
+            <param format="neptune-fossil-group" label="Fossil Group" name="fossil_group" required="true" type="NeptuneFossilGroup"> The fossil
+                group of the taxa occuring in the sample. </param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>xls</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>Neptune</database>
+        <sql>
+            <![CDATA[
+            SELECT
+                a.sample_age_ma, a.sample_depth_mbsf, c.water_depth, c.leg, c.site, c.hole, a.hole_id, 
+                c.latitude, c.longitude, c.ocean_code, d.taxon_abundance, 
+                TRIM(INITCAP(e.genus) || ' ' || LOWER(e.species) || ' ' || LOWER(COALESCE(e.subspecies,' '))) AS taxon, e.fossil_group 
+            FROM 
+                neptune_sample a, neptune_core b, neptune_hole_summary c, neptune_sample_taxa d, 
+                neptune_taxonomy e <#if include_synonyms?has_content && taxon?has_content>, neptune_taxonomy_synonym f</#if> 
+            WHERE
+                a.hole_id = b.hole_id 
+                AND b.hole_id = c.hole_id 
+                AND a.core = b.core 
+                AND a.sample_id = d.sample_id 
+                AND e.taxon_id = d.taxon_id
+                <#if include_synonyms?has_content && taxon?has_content && include_synonyms != 'false' && include_synonyms != 'no'>
+                AND e.taxon_id = f.taxon_id
+                AND f.taxsyn_id IN (
+                    SELECT z.taxsyn_id FROM neptune_taxonomy y, neptune_taxonomy_synonym z
+                    WHERE 
+                        y.taxon_id = z.taxon_id
+                    <#if genus?has_content>
+                        AND y.genus ILIKE '${genus}'
+                    </#if>
+                    <#if species?has_content>
+                        AND y.species ILIKE '${species}'
+                    </#if>
+                    <#if subspecies?has_content>
+                        AND y.subspecies ILIKE '${subspecies}'
+                    </#if>
+                )
+                <#else/>
+                    <#if genus?has_content>
+                    AND e.genus ILIKE '${genus}'
+                    </#if>
+                    <#if species?has_content>
+                    AND e.species ILIKE '${species}'
+                    </#if>
+                    <#if subspecies?has_content>
+                    AND e.subspecies ILIKE '${subspecies}'
+                    </#if>
+                </#if>
+                <#if fossil_group?has_content>
+                AND e.fossil_group = '${fossil_group}'    
+                </#if>
+                <#if time_range?has_content>
+                AND a.sample_age_ma ${time_range}
+                </#if>
+                <#if latitude?has_content>
+                AND c.latitude ${latitude}
+                </#if>
+                <#if longitude?has_content>
+                AND c.longitude ${longitude}
+                </#if>
+                <#if ocean?has_content>
+                AND c.ocean_code = '${ocean}'
+                </#if>
+                <#if hole_id?has_content>
+                AND c.hole_id = '${hole_id}'
+                </#if>
+                <#if leg?has_content>
+                AND c.leg = '${leg}'
+                </#if>
+                <#if site?has_content>
+                AND c.site = '${site}'
+                </#if>
+                <#if hole?has_content>
+                AND c.hole = '${hole}'
+                </#if>
+                <#if include_dated?has_content && include_dated != 'false' && include_dated != 'no'>
+                AND a.sample_age_ma IS NOT NULL 
+                </#if> 
+            ORDER BY 
+                a.sample_age_ma
+            ]]>
+        </sql>
+    </query>
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.neptune.samples.gns-biodiversity</id>
+        <title>Sample Search (GNS Biodiversity)</title>
+        <description>Get samples from the Neptune database constrained by location, age, and/or taxon in a format appropriate for use in the GNS biodiversity tool.</description>
+        <author>searches@chronos.org</author>
+        <date>2006/02/13</date>
+        <labels>
+            <label>Neptune</label>
+        </labels>
+        <providers>
+            <provider>Neptune</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param format="time-range" label="Time Range" name="time_range" required="false" type="AgeRange"> Limit to samples from a particular time range. You
+                may specify the range with numerical ages or time scale stage names as 'ma1-ma2', '&lt; ma1', '&gt; ma1', 'stage1', 'stage1-stage2',
+                '&lt; stage1', or '&gt; stage1'. </param>
+            <param label="Leg" name="leg" required="false" type="Leg">Limit to samples from a specific leg.</param>
+            <param label="Site" name="site" required="false" type="Site">Limit to samples from a specific site.</param>
+            <param label="Hole" name="hole" required="false" type="Hole">Limit to samples from a specific hole.</param>
+            <param label="Hole ID" name="hole_id" required="false" type="NeptuneHoleID"> Limit to samples from a particular Neptune hole id. </param>
+            <param format="sql-range" label="Latitude" name="latitude" required="false" type="LatitudeDD"> Limit to samples from a latitude (in decimal degrees)
+                range. You may specify the range as 'lat1-lat2', '&lt; lat1', or '&gt; lat1'. Valid values for the latitude are -90 to 90. Positive
+                latitudes correspond to the northern hemisphere negative latitudes correspond to the southern hemisphere. </param>
+            <param format="sql-range" label="Longitude" name="longitude" required="false" type="LongitudeDD"> Limit to samples from a longitude (in decimal
+                degrees) range. You may specify the range as 'long1-long2', '&lt; long1', or '&gt; long1'. Valid values for the longitude are -180 to
+                180. Positive longitudes correspond to eastern longitudes and negative longitudes correspond to western longitudes. </param>
+            <param format="neptune-ocean-code" label="Ocean" name="ocean" required="false" type="NeptuneOceanCode"> Limit to samples from a particular ocean. </param>
+            <param format="taxon-name" label="Taxon Name" name="taxon" required="false" type="NeptuneTaxonName">Constrain to samples that contain the specified
+                taxon name. This can be a genera ('Globigerinoides') or a genus-species combination ('Globigerinoides mitra' or 'G. mitra').</param>
+            <param format="neptune-fossil-group" label="Fossil Group" name="fossil_group" required="false" type="NeptuneFossilGroup"> Limit to samples
+                containing taxon occurrences from a particular fossil group. </param>
+            <param label="Include Synonyms" name="include_synonyms" required="false" type="Flag"/>
+            <param label="Include only samples that have been dated" name="include_dated" required="false" type="Flag"/>
+        </inputs>
+        <outputs>
+            <param label="Sample ID" name="sample_id" required="true" type="NeptuneSampleID">The id of the sample.</param>
+            <param label="Sample Age" name="sample_age_ma" required="true" type="AgeMA"> The age of the sample. </param>
+            <param label="Genus" name="genus" required="true" type="Genus"/>
+            <param label="Subgenus" name="subgenus" required="true" type="Subgenus"/>
+            <param label="Species" name="species" required="true" type="Species"/>
+            <param label="Subspecies" name="subspecies" required="true" type="Subspecies"/>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>xls</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>Neptune</database>
+        <sql>
+            <![CDATA[
+            SELECT
+                a.sample_id, a.sample_age_ma, UPPER(e.genus), UPPER(e.genus) as subgenus, UPPER(e.species), UPPER(COALESCE(e.subspecies, e.species)) as subspecies
+            FROM 
+                neptune_sample a, neptune_core b, neptune_hole_summary c, neptune_sample_taxa d, 
+                neptune_taxonomy e <#if include_synonyms?has_content && taxon?has_content>, neptune_taxonomy_synonym f</#if> 
+            WHERE
+                a.hole_id = b.hole_id 
+                AND b.hole_id = c.hole_id 
+                AND a.core = b.core 
+                AND a.sample_id = d.sample_id 
+                AND e.taxon_id = d.taxon_id
+                <#if include_synonyms?has_content && taxon?has_content && include_synonyms != 'false' && include_synonyms != 'no'>
+                AND e.taxon_id = f.taxon_id
+                AND f.taxsyn_id IN (
+                    SELECT z.taxsyn_id FROM neptune_taxonomy y, neptune_taxonomy_synonym z
+                    WHERE 
+                        y.taxon_id = z.taxon_id
+                    <#if genus?has_content>
+                        AND y.genus ILIKE '${genus}'
+                    </#if>
+                    <#if species?has_content>
+                        AND y.species ILIKE '${species}'
+                    </#if>
+                    <#if subspecies?has_content>
+                        AND y.subspecies ILIKE '${subspecies}'
+                    </#if>
+                )
+                <#else/>
+                    <#if genus?has_content>
+                    AND e.genus ILIKE '${genus}'
+                    </#if>
+                    <#if species?has_content>
+                    AND e.species ILIKE '${species}'
+                    </#if>
+                    <#if subspecies?has_content>
+                    AND e.subspecies ILIKE '${subspecies}'
+                    </#if>
+                </#if>
+                <#if fossil_group?has_content>
+                AND e.fossil_group = '${fossil_group}'    
+                </#if>
+                <#if time_range?has_content>
+                AND a.sample_age_ma ${time_range}
+                </#if>
+                <#if latitude?has_content>
+                AND c.latitude ${latitude}
+                </#if>
+                <#if longitude?has_content>
+                AND c.longitude ${longitude}
+                </#if>
+                <#if ocean?has_content>
+                AND c.ocean_code = '${ocean}'
+                </#if>
+                <#if hole_id?has_content>
+                AND c.hole_id = '${hole_id}'
+                </#if>
+                <#if leg?has_content>
+                AND c.leg = '${leg}'
+                </#if>
+                <#if site?has_content>
+                AND c.site = '${site}'
+                </#if>
+                <#if hole?has_content>
+                AND c.hole = '${hole}'
+                </#if>
+                <#if include_dated?has_content && include_dated != 'false' && include_dated != 'no'>
+                AND a.sample_age_ma IS NOT NULL 
+                </#if> 
+            ORDER BY 
+                a.sample_age_ma
+            ]]>
+        </sql>
+    </query>    
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.neptune.holes</id>
+        <title>ODP/DSDP Hole Summary</title>
+        <description>Summary data on ODP/DSDP holes</description>
+        <author>searches@chronos.org</author>
+        <date>2005/10/17</date>
+        <labels>
+            <label>Neptune</label>
+        </labels>
+        <providers>
+            <provider>Neptune</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param label="Hole ID" name="hole_id" required="false" type="NeptuneHoleID"> Limit to samples from a particular Neptune hole id. </param>
+            <param label="Leg" name="leg" required="false" type="Leg">The leg.</param>
+            <param label="Site" name="site" required="false" type="Site">The site.</param>
+            <param label="Hole" name="hole" required="false" type="Hole">The hole.</param>
+            <param format="sql-range" label="Latitude" name="latitude" required="false" type="LatitudeDD"> Limit to samples from a latitude (in decimal degrees)
+                range. You may specify the range as 'lat1-lat2', '&lt; lat1', or '&gt; lat1'. Valid values for the latitude are -90 to 90. Positive
+                latitudes correspond to the northern hemisphere negative latitudes correspond to the southern hemisphere. </param>
+            <param format="sql-range" label="Longitude" name="longitude" required="false" type="LongitudeDD"> Limit to samples from a longitude (in decimal
+                degrees) range. You may specify the range as 'long1-long2', '&lt; long1', or '&gt; long1'. Valid values for the longitude are -180 to
+                180. Positive longitudes correspond to eastern longitudes and negative longitudes correspond to western longitudes. </param>
+            <param format="neptune-ocean-code" label="Ocean" name="ocean" required="false" type="NeptuneOceanCode"> Limit to samples from a particular ocean.
+            </param>
+        </inputs>
+        <outputs>
+            <param label="Hole ID" name="hole_id" required="true" type="NeptuneHoleID"> The ID of the hole in Neptune. </param>
+            <param label="Site Hole" name="site_hole" required="true" type="NeptuneSiteHole">The site hole in Neptune</param>
+            <param label="Leg" name="leg" required="true" type="Leg">The leg.</param>
+            <param label="Site" name="site" required="true" type="Site">The site.</param>
+            <param label="Hole" name="hole" required="true" type="Hole">The hole.</param>
+            <param label="Latitude" name="latitude" required="true" type="LatitudeDD"> The latitude (in decimal degrees) of the hole that the sample was taken
+                from. </param>
+            <param label="Longitude" name="longitude" required="true" type="LongitudeDD"> The longitude (in decimal degrees) of the hole that the sample was
+                taken from. </param>
+            <param format="neptune-ocean-code, proper-case" label="Ocean" name="ocean_code" required="true" type="NeptuneOceanCode"> The ocean where the hole is
+                located. </param>
+            <param label="Water Depth" name="water_depth" required="true" type="WaterDepth"> The water depth of the hole that the sample was taken from. </param>
+            <param label="Meters Penetrated" name="meters_penetrated" required="true" type="Number">The number of meters penetrated.</param>
+            <param label="Meters Recovered" name="meters_recovered" required="true" type="Number">The number of meters recovered.</param>
+            <param label="Paleo Mag" name="pmag_flag" required="true" type="Flag"/>
+            <param label="Age Model Revision" name="revision_no" required="true" type="Number"/>
+            <param label="Minimum Age" name="min_age" required="true" type="AgeMA"/>
+            <param label="Maximum Age" name="max_age" required="true" type="AgeMA"/>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>xls</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>Neptune</database>
+        <sql>
+            <![CDATA[
+            SELECT DISTINCT a.*, b.revision_no, min(b.age_ma) as min_age, max(b.age_ma) as max_age
+            FROM neptune_hole_summary a
+            LEFT JOIN neptune_age_model b ON a.site_hole = b.site_hole
+            WHERE
+                'true' = 'true'
+            <#if hole_id?has_content>
+                AND a.hole_id = '${hole_id}'
+            </#if>
+            <#if leg?has_content>
+                AND a.leg = '${leg}'
+            </#if>
+            <#if site?has_content>
+                AND a.site = '${site}'
+            </#if>
+            <#if hole?has_content>
+                AND a.hole = '${hole}'
+            </#if>
+            <#if latitude?has_content>
+                AND a.latitude ${latitude}
+            </#if>
+            <#if longitude?has_content>
+                AND a.longitude ${longitude}
+            </#if>
+            <#if ocean?has_content>
+                AND a.ocean_code = '${ocean}'
+            </#if>
+            GROUP BY
+                a.hole_id, a.site_hole, a.leg, a.site, a.hole, a.latitude, a.longitude, 
+                a.ocean_code, a.water_depth, a.meters_penetrated, a.meters_recovered,
+                a.pmag_flag, b.revision_no
+            ]]>
+        </sql>
+    </query>
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.neptune.age-model</id>
+        <title>Age Model Data</title>
+        <description>Retrieves the data points in the age model for a specific hole.</description>
+        <author>searches@chronos.org</author>
+        <date>2006/02/06</date>
+        <labels>
+            <label>Neptune</label>
+        </labels>
+        <providers>
+            <provider>Neptune</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param label="Site Hole" name="site_hole" required="true" type="NeptuneSiteHole"/>
+        </inputs>
+        <outputs>
+            <param label="Age" name="age" required="true" type="AgeMA"/>
+            <param label="Depth" name="depth" required="true" type="DepthMBSF"></param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>xls</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>neptune</database>
+        <sql>
+            <![CDATA[
+                select age_ma as age, '-' || depth_mbsf as depth
+                from neptune_age_model
+                where site_hole = '${site_hole}'
+            ]]>
+        </sql>
+    </query>
+</qdf:qdf>

@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<qdf:qdf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://services.chronos.org/qdf/QDF ../qdf.xsd"
+    xmlns:qdf="http://services.chronos.org/qdf/QDF">
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.timescale.interval.age-range</id>
+        <title>Age Range Lookup for Time Scale Interval</title>
+        <description>Gets the age range for a particular time scale interval.</description>
+        <author>searches@chronos.org</author>
+        <date>2004/12/17</date>
+        <labels>
+            <label>Time Scale</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param name="time_scale" type="TimeScaleName" label="Time Scale" required="true"> The
+                time scale to use. </param>
+            <param name="stage" type="TimeScaleStageName" label="Interval" format="stage-name" required="true"> The time
+                scale interval name. </param>
+        </inputs>
+        <outputs>
+            <param name="age_min_ma" type="AgeMA" label="Min Ma" required="true"> The min ma of the
+                age. </param>
+            <param name="age_max_ma" type="AgeMA" label="Max Ma" required="true"> The max ma of the
+                age. </param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>tsv</serializer>
+        </serializers>
+        <database>Timescale</database>
+        <sql>
+            SELECT
+                a.age_min_ma, a.age_max_ma
+            FROM
+                chronos_ref_time_scale_def a, chronos_ref_time_scale b, chronos_ref_time_scale_level c
+            WHERE
+                a.age_level_id = c.age_level_id
+                AND b.time_scale_name = '${time_scale}'
+                AND b.time_scale_id = a.time_scale_id
+                AND ${stage}
+            ORDER BY
+                age_min_ma
+        </sql>
+    </query>
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.timescale.interval.age-info</id>
+        <title>Time Scale Interval Age Info</title>
+        <description>This search returns all of the time scale intervals that occur within a specific time range.</description>
+        <author>searches@chronos.org</author>
+        <date>2004/12/17</date>
+        <labels>
+            <label>Time Scale</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param name="time_scale" type="TimeScaleName" label="Time Scale" required="true">
+                The time scale to use.
+            </param>
+            <param name="time_range" type="TimeRange" label="Time Range" format="time-range" required="true">
+                The time scale interval name.
+            </param>
+        </inputs>
+        <outputs>
+            <param name="stage" type="TimeScaleStageName" label="Interval" required="true">
+                The time scale interval name.
+            </param>
+            <param name="age_level" type="TimeScaleAgeLevel" label="Age Level" required="true">
+                The age level.
+            </param>
+            <param name="age_min_ma" type="AgeMA" label="Min Ma" required="true">
+                The min ma of the age.
+            </param>
+            <param name="age_max_ma" type="AgeMA" label="Max Ma" required="true">
+                The max ma of the age.
+            </param>
+            <param name="parent" type="TimeScaleStageName" label="Parent" required="true">
+                The parent time scale interval name.
+            </param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>tsv</serializer>
+            <serializer>excel</serializer>
+        </serializers>
+        <database>Timescale</database>
+        <sql>
+            <![CDATA[
+            SELECT
+                TRIM(COALESCE(a.age_prefix, '') || ' ' || a.age_name) as stage, 
+                c.age_level_name as age_level, a.age_min_ma, a.age_max_ma, 
+                TRIM(COALESCE(d.age_prefix, '') || ' ' || d.age_name) as parent
+            FROM
+                chronos_ref_time_scale_def a, chronos_ref_time_scale b, 
+                chronos_ref_time_scale_level c, chronos_ref_time_scale_def d
+            WHERE
+                a.age_level_id = c.age_level_id
+                AND b.time_scale_name = '${time_scale}'
+                AND b.time_scale_id = a.time_scale_id
+                AND d.age_id = a.parent_age_id
+                AND (a.age_min_ma ${time_range} OR a.age_max_ma ${time_range})
+            ORDER BY
+                a.age_level_id
+            ]]>
+        </sql>
+    </query>
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.timescale.time-scales</id>
+        <title>Time Scales</title>
+        <description>Gets the list of time scales CHRONOS hosts.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/02/06</date>
+        <labels>
+            <label>Time Scale</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param label="Include description" name="include_desc" required="false" type="Flag"/>
+        </inputs>
+        <outputs>
+            <param label="Time Scale" name="time_scale_name" required="true" type="TimeScaleName"/>
+            <param label="Description" name="description" required="false" type="String"/>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>tsv</serializer>
+            <serializer>excel</serializer>
+        </serializers>
+        <database>timescale</database>
+        <sql>
+            <![CDATA[
+            SELECT time_scale_name
+            <#if include_desc?has_content>
+            , time_scale_descript as description
+            </#if>
+            FROM chronos_ref_time_scale ORDER BY time_scale_name
+            ]]>
+        </sql>
+    </query>
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.timescale.paleomag-scales</id>
+        <title>Paleomag Scales</title>
+        <description>Gets the list of paleomag scales CHRONOS hosts.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/02/06</date>
+        <labels>
+            <label>Time Scale</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param label="Include description" name="include_desc" required="false" type="Flag"/>
+        </inputs>
+        <outputs>
+            <param label="Paleomag Scale" name="paleomag_scale_name" required="true" type="PaleomagScaleName"/>
+            <param label="Description" name="description" required="false" type="String"/>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>tsv</serializer>
+            <serializer>excel</serializer>
+        </serializers>
+        <database>timescale</database>
+        <sql>
+            <![CDATA[
+            SELECT paleomag_scale_name
+            <#if include_desc?has_content>
+            , paleomag_scale_descript as description
+            </#if>
+            FROM chronos_ref_paleomag_scale ORDER BY paleomag_scale_name
+            ]]>
+        </sql>
+    </query>
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.timescale.color-schemes</id>
+        <title>Color Schemes</title>
+        <description>Gets the list of time scale color schemes CHRONOS hosts.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/02/06</date>
+        <labels>
+            <label>Time Scale</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param label="Include description" name="include_desc" required="false" type="Flag"/>
+        </inputs>
+        <outputs>
+            <param label="Color Scheme" name="color_scheme_name" required="true" type="ColorSchemeName"/>
+            <param label="Description" name="description" required="false" type="String"/>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>tsv</serializer>
+            <serializer>excel</serializer>
+        </serializers>
+        <database>timescale</database>
+        <sql>
+            <![CDATA[
+            SELECT color_scale_name as color_scheme_name
+            <#if include_desc?has_content>
+            , color_scale_descript as description
+            </#if>
+            FROM chronos_ref_time_color_scheme ORDER BY color_scheme_name
+            ]]>
+        </sql>
+    </query>
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.timescale.chrons</id>
+        <title>Chrons</title>
+        <description>Gets the list of chrons from a specific time range.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/02/06</date>
+        <labels>
+            <label>Time Scale</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param label="Paleomag Scale" name="paleomag_scale" required="true" type="PaleomagScaleName"/>
+            <param label="Time Range" name="time_range" format="time-range" required="true" type="TimeRange"/>
+            <param label="Include description" name="include_desc" required="false" type="Flag"/>
+        </inputs>
+        <outputs>
+            <param label="Chron Name" name="chrono_name" required="true" type="ChronName"/>
+            <param label="Min Age" name="age_min_ma" required="true" type="AgeMA"/>
+            <param label="Max Age" name="age_max_ma" required="true" type="AgeMA"/>
+            <param label="Polarity" name="polarity" required="true" type="ChronPolarity"/>
+            <param label="Description" name="description" required="false" type="String"/>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>tsv</serializer>
+            <serializer>excel</serializer>
+        </serializers>
+        <database>timescale</database>
+        <sql>
+            <![CDATA[
+            SELECT a.chron_name, a.chron_age_min_ma as age_min_ma, a.chron_age_max_ma as age_max_ma, 
+            a.chron_polarity_dir as polarity
+            <#if include_desc?has_content>
+            , a.chron_descript as description
+            </#if>
+            FROM chronos_ref_paleomag_chron_def a, chronos_ref_paleomag_scale b  
+            WHERE 
+                a.chron_age_min_ma ${time_range}
+                AND a.paleomag_scale_id = b.paleomag_scale_id
+                AND b.paleomag_scale_name = '${paleomag_scale}'
+            ORDER BY chron_age_min_ma
+            ]]>
+        </sql>
+    </query>
+    <query xsi:type="qdf:PortalQuery">
+        <id>chronos.timescale.info</id>
+        <title>Time Scale Database Info</title>
+        <description>This query displays various information about the time scale database.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/02/07</date>
+        <labels>
+            <label>Time Scale</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs/>
+        <outputs/>
+        <serializers/>
+        <layout>resources/templates/infopages/TimeScaleInfoPage.ftl</layout>
+        <search>
+            <id>chronos.timescale.time-scales</id>
+            <bind>timescales</bind>
+            <param name="include_desc" value="true"/>
+            <param name="serializeAs" value="csv"/>
+            <param name="noHeader" value="true"/>
+        </search>
+        <search>
+            <id>chronos.timescale.paleomag-scales</id>
+            <bind>paleomag</bind>
+            <param name="include_desc" value="true"/>
+            <param name="serializeAs" value="csv"/>
+            <param name="noHeader" value="true"/>
+        </search>
+        <search>
+            <id>chronos.timescale.color-schemes</id>
+            <bind>color</bind>
+            <param name="include_desc" value="true"/>
+            <param name="serializeAs" value="csv"/>
+            <param name="noHeader" value="true"/>
+        </search>
+    </query>
+</qdf:qdf>

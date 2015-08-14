@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<qdf:qdf xmlns:qdf="http://services.chronos.org/qdf/QDF"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://services.chronos.org/qdf/QDF ../qdf.xsd">
+    
+    <query xsi:type="qdf:ScraperQuery">
+        <id>pangaea.pangaea.dataset.count</id>
+        <title>Pangaea Scraper</title>
+        <description>Scrapes the number of datasets available in Pangaea.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/03/28</date>
+        <labels>        
+            <label>Utility</label>
+        </labels>
+        <providers>
+            <provider>pangaea.de</provider>
+        </providers>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param name="terms" type="QueryString" label="Terms" required="true">The terms.</param>
+        </inputs>
+        <outputs>
+            <param name="count" type="Count" label="Count" required="true">The count</param>
+        </outputs>
+        <serializers>
+            <serializer>count</serializer>
+            <serializer>count-image</serializer>
+        </serializers>
+        <url>http://pangaea.de/PangaVista?count=1&amp;query=$$terms$$</url>
+<!--        <pattern>(stag("B") __ etag("B") containing "dataset") extracting " datasets"</pattern> -->
+        <pattern>(stag("H1") __ etag("H1") containing "dataset") extracting (" datasets" .. etag("SPAN"))</pattern>
+    </query>
+    
+    <query xsi:type="qdf:ScraperQuery">
+        <id>snet.taxonconcept.dataset.count</id>
+        <title>S.NET Scraper</title>
+        <description>Scrapes the number of taxon entries available at S.NET.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/04/14</date>
+        <labels>
+            <label>Utility</label>
+        </labels>
+        <providers>
+            <provider>s.net</provider>
+        </providers>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param name="terms" type="QueryString" label="Terms" required="true">The terms.</param>
+        </inputs>
+        <outputs>
+            <param name="count" type="Count" label="Count" required="true">The count</param>
+        </outputs>
+        <serializers>
+            <serializer>count</serializer>
+            <serializer>count-image</serializer>
+        </serializers>
+        <url>http://taxonconcept.stratigraphy.net/TCChronos.php?taxonname=$$terms$$</url>
+        <pattern>stag("STRING") __ etag("STRING")</pattern>
+    </query>
+</qdf:qdf>

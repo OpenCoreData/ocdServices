@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<qdf:qdf xmlns:qdf="http://services.chronos.org/qdf/QDF" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://services.chronos.org/qdf/QDF ../qdf.xsd">
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.neptune.samples.rangechart</id>
+        <title>Range Chart Search</title>
+        <description></description>
+        <author>searches@chronos.org</author>
+        <date>2006/06/15</date>
+        <labels>
+            <label>Neptune</label>
+        </labels>
+        <providers>
+            <provider>Neputne</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param label="Site Hole" name="site_hole" required="true" type="NeptuneSiteHole"></param>
+        </inputs>
+        <outputs>
+            <param label="Sample ID" name="sample_id" required="true" type="SampleID"></param>
+            <param label="Sample Depth" name="sample_depth_mbsf" required="true" type="DepthMBSF"></param>
+            <param label="Sample Preservation" name="sample_preservation" required="true" type="NeptuneSamplePreservation"></param>
+            <param label="Taxon" name="taxon" required="true" type="Taxon"></param>
+            <param label="Taxon Abundance" name="taxon_abundance" required="true" type="NeptuneTaxonAbundance"></param>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>xls</serializer>
+            <serializer>wrs</serializer>
+            <serializer>rangechart</serializer>
+        </serializers>
+        <database>neptune</database>
+        <sql>
+            <![CDATA[
+                SELECT
+    				a.sample_id, a.sample_depth_mbsf, a.sample_preservation, 
+    				TRIM(INITCAP(c.genus) || ' ' || LOWER(c.species) || ' ' || LOWER(COALESCE(c.subspecies, ''))) as taxon,
+    				b.taxon_abundance
+				FROM
+    				neptune_sample a, neptune_sample_taxa b, neptune_taxonomy c, neptune_hole_summary d
+				WHERE
+    				a.sample_id = b.sample_id
+    				AND b.taxon_id = c.taxon_id
+    				AND a.hole_id = d.hole_id
+    				AND d.site_hole = '${site_hole}'
+				ORDER BY sample_id
+            ]]>
+        </sql>
+    </query>
+</qdf:qdf>

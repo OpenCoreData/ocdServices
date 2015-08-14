@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<qdf:qdf xmlns:qdf="http://services.chronos.org/qdf/QDF"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://services.chronos.org/qdf/QDF ../qdf.xsd">
+
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.neptune.suggest.genus</id>
+        <title>Genus Suggests</title>
+        <description>Suggest genera names from the Neptune database.</description>
+        <author>searched@chronos.org</author>
+        <date>2005/10/10</date>
+        <labels>
+            <label>Utility</label>
+            <label>Suggest</label>
+        </labels>
+        <providers/>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param label="Genus" name="genus" required="true" type="Genus"/>
+        </inputs>
+        <outputs>
+            <param label="Genus" name="genus" required="true" type="NeptuneGenus"/>
+        </outputs>
+        <serializers>
+            <serializer>csv</serializer>
+        </serializers>
+        <database>neptune</database>
+        <sql>
+            SELECT DISTINCT INITCAP(genus) FROM neptune_taxonomy WHERE genus ILIKE '${genus}%' LIMIT 20
+        </sql>
+    </query>
+    
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.neptune.suggest.species</id>
+        <title>Species Suggests</title>
+        <description>Suggest species names from the Neptune database.</description>
+        <author>searched@chronos.org</author>
+        <date>2005/10/10</date>
+        <labels>
+            <label>Utility</label>
+            <label>Suggest</label>
+        </labels>
+        <providers/>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param label="Species" name="species" required="true" type="Species"/>
+            <param label="Genus" name="genus" required="true" type="Genus"/>
+        </inputs>
+        <outputs>
+            <param label="Species" name="species" required="true" type="NeptuneSpecies"/>
+        </outputs>
+        <serializers>
+            <serializer>csv</serializer>
+        </serializers>
+        <database>neptune</database>
+        <sql>
+            SELECT DISTINCT LOWER(species) FROM neptune_taxonomy WHERE species ILIKE '${species}%' AND genus ILIKE '${genus}%' LIMIT 20
+        </sql>
+    </query>
+    
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.neptune.suggest.taxonname</id>
+        <title>Genus Suggests</title>
+        <description>Suggest taxon names from the Neptune database.</description>
+        <author>searched@chronos.org</author>
+        <date>2005/10/10</date>
+        <labels>
+            <label>Utility</label>
+            <label>Suggest</label>
+        </labels>
+        <providers/>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param label="Taxon Name" name="taxon" required="true" type="TaxonName" format="taxon-name"/>
+        </inputs>
+        <outputs>
+            <param label="Taxon Name" name="taxon" required="true" type="NeptuneTaxonName"/>
+        </outputs>
+        <serializers>
+            <serializer>csv</serializer>
+        </serializers>
+        <database>neptune</database>
+        <sql>
+            <![CDATA[
+            <#if taxon?index_of(" ") = -1>
+            SELECT DISTINCT INITCAP(genus) AS taxon FROM neptune_taxonomy WHERE genus ILIKE '${taxon}%' LIMIT 20
+            <#else/>
+            SELECT DISTINCT TRIM(INITCAP(genus) || ' ' || LOWER(species) || ' ' || LOWER(COALESCE(subspecies,' '))) AS taxon FROM neptune_taxonomy 
+            WHERE TRIM(INITCAP(genus) || ' ' || LOWER(species) || ' ' || LOWER(COALESCE(subspecies,' '))) ILIKE '${taxon}%' LIMIT 20
+            </#if>  
+            ]]>
+        </sql>
+    </query>
+    
+    <query xsi:type="qdf:SQLQuery">
+        <id>iodp.janus.suggest.taxonname</id>
+        <title>Genus Suggests</title>
+        <description>Suggest taxon names from the Janus database.</description>
+        <author>searched@chronos.org</author>
+        <date>2005/10/10</date>
+        <labels>
+            <label>Utility</label>
+            <label>Suggest</label>
+        </labels>
+        <providers/>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param label="Taxon Name" name="taxon" required="true" type="TaxonName" format="taxon-name"/>
+        </inputs>
+        <outputs>
+            <param label="Taxon Name" name="taxon" required="true" type="JanusTaxonName"/>
+        </outputs>
+        <serializers>
+            <serializer>csv</serializer>
+        </serializers>
+        <database>Janus</database>
+        <sql>
+            <![CDATA[
+            <#if taxon?index_of(" ") = -1>
+            SELECT taxon FROM 
+                (SELECT DISTINCT INITCAP(genus_subgenus) as taxon FROM taxon_concept WHERE UPPER(genus_subgenus) LIKE UPPER('${taxon}%'))
+            WHERE ROWNUM < 21
+            <#else/>
+            SELECT taxon FROM
+                (SELECT DISTINCT TRIM(INITCAP(genus_subgenus) || ' ' || LOWER(species_subspecies)) as taxon FROM taxon_concept 
+                 WHERE TRIM(UPPER(genus_subgenus) || ' ' || UPPER(species_subspecies)) LIKE UPPER('${taxon}%'))
+            WHERE ROWNUM < 21
+            </#if>  
+            ]]>
+        </sql>
+    </query>
+    
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.neptune.suggest.holeid</id>
+        <title>Hole ID Suggests</title>
+        <description>Suggest hole ids from the Neptune database.</description>
+        <author>searched@chronos.org</author>
+        <date>2005/10/10</date>
+        <labels>
+            <label>Utility</label>
+            <label>Suggest</label>
+        </labels>
+        <providers/>
+        <display>false</display>
+        <interfaces/>
+        <inputs>
+            <param label="Hole ID" name="hole_id" required="true" type="NeptuneHoleID"/>
+        </inputs>
+        <outputs>
+            <param label="Hole ID" name="hole_id" required="true" type="NeptuneHoleID"/>
+        </outputs>
+        <serializers>
+            <serializer>csv</serializer>
+        </serializers>
+        <database>neptune</database>
+        <sql>
+            SELECT DISTINCT UPPER(hole_id) FROM neptune_hole_summary a, neptune_age_model b WHERE hole_id ILIKE '${hole_id}%' AND a.site_hole = b.site_hole LIMIT 20
+        </sql>
+    </query>
+</qdf:qdf>

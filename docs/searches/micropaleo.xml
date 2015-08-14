@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<qdf:qdf xmlns:qdf="http://services.chronos.org/qdf/QDF"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://services.chronos.org/qdf/QDF ../qdf.xsd">
+
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.neptune.micropaleo</id>
+        <title>Micropaleo Query</title>
+        <description>Micropaleo query.</description>
+        <author>searches@chronos.org</author>
+        <date>2006/01/04</date>
+        <labels>
+            <label>Micropaleo</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param format="neptune-fossil-group" label="Fossil Group" name="fossil_group"
+                required="false" type="NeptuneFossilGroup"> Limit to samples containing taxon
+                occurrences from a particular fossil group. </param>
+            <param label="Genus" name="genus" required="false" type="NeptuneGenus"> Limit to samples
+                containing taxon occurrences from a particular genus. </param>
+            <param label="Species" name="species" required="false" type="NeptuneSpecies"> Limit to
+                samples containing taxon occurrences from a particular species. </param>
+            <param format="time-range" label="Time Range" name="time_range" required="false"
+                type="AgeRange"> Limit to samples from a particular time range. You may specify the
+                range with numerical ages or time scale stage names as 'ma1-ma2', '&lt; ma1',
+                '&gt; ma1', 'stage1', 'stage1-stage2', '&lt; stage1', or '&gt; stage1'. </param>
+            <param label="Sample Count" name="sample_count" required="false" type="Number"> The
+                minimum number of samples within the specified range.</param>
+        </inputs>
+        <outputs>
+            <param label="Leg" name="leg" required="true" type="Leg"/>
+            <param label="Site" name="site" required="true" type="Site"/>
+            <param label="Hole" name="hole" required="true" type="Hole"/>
+            <param label="Hole ID" name="hole_id" required="true" type="HoleID"/>
+            <param label="Longitude" name="longitude" required="true" type="LongitudeDD"/>
+            <param label="Latitude" name="latitude" required="true" type="LatitudeDD"/>
+            <param label="Ocean Code" name="ocean_code" required="true" type="NeptuneOceanCode"/>
+            <param label="Sample ID" name="sample_id" required="true" type="NeptuneSampleID"/>
+            <param label="Sample Group Abundance" name="sample_group_abundance" required="true"
+                type="Abundance"/>
+            <param label="Sample Preservation" name="sample_preservation" required="true"
+                type="SamplePreservation"/>
+            <param label="Taxon Abundance" name="taxon_abundance" required="true" type="Abundance"/>
+            <param label="Sample Depth" name="sample_depth_mbsf" required="true" type="DepthMBSF"/>
+            <param label="Sample Age" name="sample_age_ma" required="true" type="AgeMA"/>
+            <param label="Taxon ID" name="taxon_id" required="true" type="TaxonID"/>
+            <param label="Fossil Name" name="fossil_name" required="true" type="TaxonName"/>
+            <param label="Taxon Syn ID" name="taxsyn_id" required="true" type="TaxonID"/>
+            <param label="Resolved Fossil Name" name="resolved_fossil_name" required="true"
+                type="TaxonName"/>
+        </outputs>
+        <serializers>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>excel</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>neptune</database>
+        <sql>
+            <![CDATA[
+            SELECT 
+                leg, site, hole, a.hole_id, longitude, latitude, ocean_code, b.sample_id, sample_group_abundance, 
+                sample_preservation, taxon_abundance, sample_depth_mbsf, sample_age_ma,
+                c.taxon_id, trim(initcap(d.genus)||' '||lower(d.species)||' '||lower(coalesce(d.subspecies,' '))) AS fossil_name,
+                e.taxsyn_id, trim(initcap(f.genus)||' '||lower(f.species)||' '||lower(coalesce(f.subspecies,' '))) AS resolved_fossil_name
+            FROM 
+                neptune_hole_summary a, neptune_sample b, neptune_sample_taxa c, neptune_taxonomy d, 
+                neptune_taxonomy_synonym e,neptune_taxonomy f
+            WHERE 
+                a.hole_id = b.hole_id
+                AND b.sample_id = c.sample_id
+                AND c.taxon_id = d.taxon_id
+                AND d.taxon_id = e.taxon_id
+                AND f.taxon_id = e.taxsyn_id
+                AND d.taxon_status IN ('V','S')
+                AND e.taxsyn_id IN (
+                    SELECT DISTINCT taxsyn_id 
+                    FROM neptune_sample a, neptune_sample_taxa b, neptune_taxonomy_synonym c, neptune_taxonomy d
+                    WHERE 
+                        a.sample_id = b.sample_id 
+                        AND b.taxon_id = c.taxon_id
+                        AND c.taxon_id = d.taxon_id
+                        <#if genus?has_content>
+                        AND d.genus ILIKE '${genus}'
+                        </#if>
+                        <#if fossil_group?has_content>
+                        AND d.fossil_group = '${fossil_group}'
+                        </#if>
+                        <#if species?has_content>
+                        AND d.species ILIKE '${species}'
+                        </#if>
+                        <#if time_range?has_content>
+                        AND sample_age_ma ${time_range}
+                        </#if>
+                        AND sample_age_ma IS NOT NULL
+                    GROUP BY taxsyn_id
+                    <#if sample_count?has_content>
+                    HAVING COUNT(sample_age_ma) >= ${sample_count}
+                    </#if>          
+                )
+                <#if time_range?has_content>
+                AND sample_age_ma ${time_range}
+                </#if>
+                AND sample_age_ma IS NOT NULL
+            ORDER BY 
+                e.taxsyn_id, sample_age_ma    
+        ]]>
+        </sql>
+    </query>
+</qdf:qdf>

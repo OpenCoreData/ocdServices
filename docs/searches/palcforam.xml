@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<qdf:qdf xmlns:qdf="http://services.chronos.org/qdf/QDF" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://services.chronos.org/qdf/QDF ../qdf.xsd">
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.palcforam.record.record-number</id>
+        <title>Records by Record Number</title>
+        <description>Search for records in the Paleocene ForamDB.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/04/11</date>
+        <labels>
+            <label>PalcForamDB</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param name="record_number" type="Number" label="Record Number" format="sql-range-enum" required="true">The record number(s) to return.</param>
+        </inputs>
+        <outputs>
+            <param name="sample_data" type="ResultSet" label="Samples" required="true"></param>
+        </outputs>
+        <serializers>
+            <serializer>palcforamdb</serializer>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>excel</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>palcforam</database>
+        <sql>
+            <![CDATA[
+SELECT *
+FROM foramdb_report
+WHERE ${record_number} ORDER BY record_number
+	        ]]>
+	    </sql>
+    </query>
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.palcforam.record.publish</id>
+        <title>Records by Author or Date</title>
+        <description>Search for records in the ForamDB based on author or date.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/05/23</date>
+        <labels>
+            <label>PalcForamDB</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param name="author" type="Author" label="Author" required="false">The author to search on.</param>
+            <param name="date" type="Number" label="Year" format="time-range" required="false">The year to return results from.</param>
+        </inputs>
+        <outputs>
+            <param name="sample_data" type="ResultSet" label="Samples" required="true"></param>
+        </outputs>
+        <serializers>
+            <serializer>palcforamdb</serializer>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>excel</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>palcforam</database>
+        <sql>
+            <![CDATA[
+SELECT *
+FROM foramdb_report
+	        WHERE record_number = record_number 
+            <#if author?has_content>
+                AND author ILIKE '${author}'
+            </#if>
+            <#if date?has_content>
+                AND date ${date}
+            </#if>
+	        ORDER BY record_number
+	        ]]>
+	    </sql>
+    </query>
+    <query xsi:type="qdf:SQLQuery">
+        <id>chronos.palcforam.record.taxon</id>
+        <title>Records by Taxon Occurrence</title>
+        <description>Search for records in the PalcForamDB based on taxon occurrence.</description>
+        <author>searches@chronos.org</author>
+        <date>2005/05/23</date>
+        <labels>
+            <label>PalcForamDB</label>
+        </labels>
+        <providers>
+            <provider>CHRONOS</provider>
+        </providers>
+        <display>true</display>
+        <interfaces/>
+        <inputs>
+            <param label="Taxon Name" name="taxon" required="true" type="TaxonName" format="taxon-name">
+                Constrain to samples that contain the specified taxon name. This can be a genera 
+                ('Globigerinoides') or a genus-species combination ('Globigerinoides mitra' or 'G. mitra').
+            </param>
+            <param name="stage" type="TimeRange" label="Time Range" format="enum-stage-range" required="false">The time range of occurrence.</param>
+        </inputs>
+        <outputs>
+            <param name="sample_data" type="ResultSet" label="Samples" required="true"></param>
+        </outputs>
+        <serializers>
+            <serializer>palcforamdb</serializer>
+            <serializer>html-table</serializer>
+            <serializer>csv</serializer>
+            <serializer>excel</serializer>
+            <serializer>wrs</serializer>
+        </serializers>
+        <database>palcforam</database>
+        <sql>
+            <![CDATA[
+SELECT *
+FROM foramdb_report
+	        WHERE record_number = record_number 
+	        <#if stage?has_content>
+	            AND stage ${stage}    
+	        </#if>
+	            AND (current_genus ILIKE '${genus}' OR original_genus_original_species ILIKE '${genus}')
+	        <#if species?has_content>
+	            AND (species ILIKE '${species}' OR original_genus_original_species ILIKE '${species}')
+	        </#if>
+	        ORDER BY current_genus, species
+	        ]]>
+	    </sql>
+    </query>
+</qdf:qdf>
