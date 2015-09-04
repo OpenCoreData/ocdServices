@@ -1,19 +1,19 @@
 package neptune
 
 import (
-	// "bytes"
 	"database/sql"
 	"github.com/emicklei/go-restful"
 	_ "github.com/lib/pq"
 	"log"
-	//"fmt"
-	_ "github.com/lib/pq"
+	"opencoredata.org/ocdServices/connectors"
+	"os"
 )
 
 type User struct {
 	Id, Name string
 }
 
+// Need a struct for SQL responce from Neptune so I can write it back.
 type NeptuneSamples struct {
 	Leg               string
 	Site              string
@@ -30,18 +30,13 @@ type NeptuneSamples struct {
 	Longitude         float64
 }
 
-// need a structu above for my SQL responce from Neptune.  I can then
-//write tihs back to the user.
-
 func New() *restful.WebService {
 	service := new(restful.WebService)
 	service.
 		Path("/neptune").
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
-
 	//service (restful.OPTIONSFilter)
-
 	//service.Route(service.GET("/{delteexample}").To(FindUser))
 	service.Route(service.GET("/{samples}").To(SampleCall))
 
@@ -49,31 +44,20 @@ func New() *restful.WebService {
 }
 
 func SampleCall(request *restful.Request, response *restful.Response) {
-	db, err := sql.Open("postgres", "user=USERNAME password=PASSWORD host=localhost port=9000 dbname=neptune sslmode=disable")
+
+	// read ENV vars for password and usernams
+	username := os.Getenv("CHRONOS_USERNAME")
+	password := os.Getenv("CHRONOS_PASSWORD")
+
+	// connect to Chronos DB
+	db, err := connectors.ChronosConn(username, password)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("error connectiong: %s", err)
+		return
 	}
-	//defer db.Close()
+	defer db.Close()
 
-	log.Println("Now in the service call")
-
-	// ask Pat about this querry..  and the DISTING aspect I added (why would it need to be added?)
-	sqlstring := `SELECT 
-                a.sample_age_ma, a.sample_depth_mbsf, c.water_depth, c.leg, c.site, c.hole, a.hole_id, 
-                c.latitude, c.longitude, c.ocean_code, d.taxon_abundance, 
-                TRIM(INITCAP(e.genus) || ' ' || LOWER(e.species) || ' ' || LOWER(COALESCE(e.subspecies,' '))) AS taxon, e.fossil_group 
-            FROM 
-                neptune_sample a, neptune_core b, neptune_hole_summary c, neptune_sample_taxa d, 
-                neptune_taxonomy e  
-            WHERE
-                a.hole_id = b.hole_id 
-                AND b.hole_id = c.hole_id 
-                AND a.core = b.core 
-                AND a.sample_id = d.sample_id 
-                AND e.taxon_id = d.taxon_id            
-            ORDER BY 
-                a.sample_age_ma
-	  LIMIT 1000`
+	sqlstring := SQL_samples
 
 	rows, err := db.Query(sqlstring)
 	if err != nil {
@@ -96,13 +80,5 @@ func SampleCall(request *restful.Request, response *restful.Response) {
 	}
 
 	//  Must it be a struct?
-	log.Println("Going to try and send allitems now")
 	response.WriteEntity(allitems)
 }
-
-// func FindUser(request *restful.Request, response *restful.Response) {
-// 	id := request.PathParameter("user-id")
-// 	// here you would fetch user from some persistence system
-// 	usr := &User{Id: id, Name: "John Doe"}
-// 	response.WriteEntity(usr)
-// }

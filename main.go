@@ -3,11 +3,11 @@ package main
 //http://ernestmicklei.com/2012/11/24/go-restful-first-working-example/
 
 import (
-	"chronos.org/chronos_services/Neptune"
 	"github.com/emicklei/go-restful"
 	"log"
 	"net/http"
 	"opencoredata.org/ocdServices/expeditions"
+	"opencoredata.org/ocdServices/neptune"
 )
 
 func main() {
@@ -29,7 +29,7 @@ func main() {
 	wsContainer.Add(expeditions.New())
 	wsContainer.Add(expeditions.NewNG())
 
-	log.Printf("start listening on localhost:6789")
+	log.Printf("Listening on localhost:6789")
 
 	server := &http.Server{Addr: ":6789", Handler: wsContainer}
 	server.ListenAndServe()
