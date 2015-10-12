@@ -11,7 +11,6 @@ import (
 )
 
 func main() {
-
 	wsContainer := restful.NewContainer()
 	// u := UserResource{}
 	// u.RegisterTo(wsContainer)

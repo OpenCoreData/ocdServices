@@ -1,7 +1,7 @@
 # Start from a Debian image with the latest version of Go installed
 # and a workspace (GOPATH) configured at /go.
 # docker build  --tag="opencoredata/ocdservices:0.1"  .
-# docker run -d -p 9900:9900  opencoredata/ocdservices:0.1
+# docker run -d -p 6789:6789  opencoredata/ocdservices:0.1
 FROM golang
 
 # Copy the local package files to the container's workspace.
@@ -34,4 +34,5 @@ WORKDIR /go/src/opencoredata.org/ocdServices
 ENTRYPOINT go run main.go
 
 # Document that the service listens on this port
-EXPOSE 6789
+# container needs to talk to database container
+EXPOSE 6789, 9000
