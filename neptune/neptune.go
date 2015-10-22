@@ -33,7 +33,7 @@ type NeptuneSamples struct {
 func New() *restful.WebService {
 	service := new(restful.WebService)
 	service.
-		Path("/neptune").
+		Path("/api/neptune").
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
 	//service (restful.OPTIONSFilter)
