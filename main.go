@@ -6,6 +6,7 @@ import (
 	"github.com/emicklei/go-restful"
 	"log"
 	"net/http"
+	"opencoredata.org/ocdServices/documents"
 	"opencoredata.org/ocdServices/expeditions"
 	"opencoredata.org/ocdServices/neptune"
 )
@@ -27,6 +28,7 @@ func main() {
 	wsContainer.Add(neptune.New())
 	wsContainer.Add(expeditions.New())
 	wsContainer.Add(expeditions.NewNG())
+	wsContainer.Add(documents.New())
 
 	log.Printf("Listening on localhost:6789")
 
