@@ -20,6 +20,10 @@ chown -R gorunner:gorunner /go/src/opencoredata.org/ocdServices
 # (You may fetch or manage dependencies here,
 # either manually or with a tool like "godep".)
 RUN go get code.google.com/p/gorilla/mux
+RUN go get gopkg.in/mgo.v2
+RUN go get github.com/emicklei/go-restful
+RUN go get github.com/lib/pq
+RUN go get github.com/knakk/sparql
 #RUN go install opencoredata.org/ocdServices
 
 # set user
@@ -35,4 +39,4 @@ ENTRYPOINT go run main.go
 
 # Document that the service listens on this port
 # container needs to talk to database container
-EXPOSE 6789, 9000
+EXPOSE 6789
