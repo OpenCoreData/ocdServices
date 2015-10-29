@@ -5,7 +5,8 @@ import (
 )
 
 var queryType = types.NewGraphQLObjectType(types.GraphQLObjectTypeConfig{
-	Name: "Query",
+	Name:        "Query",
+	Description: "Simple query example",
 	Fields: types.GraphQLFieldConfigMap{
 		"latestPost": &types.GraphQLFieldConfig{
 			Type: types.GraphQLString,
@@ -14,13 +15,10 @@ var queryType = types.NewGraphQLObjectType(types.GraphQLObjectTypeConfig{
 			},
 		},
 		"name": &types.GraphQLFieldConfig{
-			Type:        types.GraphQLInt,
+			Type:        types.GraphQLString,
 			Description: "The name of the human.",
 			Resolve: func(p types.GQLFRParams) interface{} {
-				// if human, ok := p.Source.(StarWarsChar); ok {
-				// 	return human.Name
-				// }
-				return 12
+				return "first test items"
 			},
 		},
 	},
