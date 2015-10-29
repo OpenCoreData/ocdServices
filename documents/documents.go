@@ -67,6 +67,26 @@ func GetFileByUUID(request *restful.Request, response *restful.Response) {
 
 	// case switch this area  (scoping a response for each one) on CSVMETA, SCHEMAORG, JSON  (and CSV?)
 	switch format {
+	case "CSV":
+		c := session.DB("test").C("schemaorg")
+		result := SchemaOrgMetadata{} // need this struct  (it's everywhere.   what can I do about that?   move only ocdServices from ocdWeb?)
+		err = c.Find(bson.M{"url": URI}).One(&result)
+		if err != nil {
+			log.Printf("URL lookup error: %v", err)
+		}
+
+		filename := result.Name // the file name
+		//  can I just 303 now to the download?  Perhaps I shouldn't in case some client don't follow
+		mongodb := session.DB("test")
+		file, _ := mongodb.GridFS("fs").Open(filename)
+		buf := make([]byte, file.Size())
+		file2, err := file.Read(buf)
+		if err != nil {
+			log.Printf("Error calling aggregation_janusURLSet : %v  length %d", err, file2)
+		}
+
+		response.AddHeader("Content-Disposition", "inline; filename=\"myfile.txt\"")
+		response.Write(buf)
 	case "JSON":
 		c := session.DB("test").C("schemaorg")
 		result := SchemaOrgMetadata{} // need this struct  (it's everywhere.   what can I do about that?   move only ocdServices from ocdWeb?)
