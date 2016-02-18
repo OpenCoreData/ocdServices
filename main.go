@@ -4,25 +4,32 @@ package main
 
 import (
 	// "github.com/chris-ramon/graphql-go/types"
+	"encoding/json"
 	"github.com/emicklei/go-restful"
-	"github.com/sogko/graphql-go-handler"
+	// "github.com/sogko/graphql-go-handler"
+	// "github.com/chris-ramon/graphql"
 	"log"
 	"net/http"
 	"opencoredata.org/ocdServices/documents"
 	"opencoredata.org/ocdServices/expeditions"
-	"opencoredata.org/ocdServices/graphql"
+	ocdGraphql "opencoredata.org/ocdServices/graphql"
 	"opencoredata.org/ocdServices/neptune"
+	"opencoredata.org/ocdServices/spatial"
 )
 
 func main() {
 	// Graphql section
-	h := gqlhandler.New(&gqlhandler.Config{
-		Schema: &graphql.Schema,
-		Pretty: true,
-	})
-
+	// h := gqlhandler.New(&gqlhandler.Config{
+	// 	Schema: &graphql.Schema,
+	// 	Pretty: true,
+	// })
 	// serve a GraphQL endpoint at `/graphql`
-	http.Handle("/graphql", h)
+	// http.Handle("/graphql", h)
+
+	http.HandleFunc("/graphql", func(w http.ResponseWriter, r *http.Request) {
+		result := ocdGraphql.ExecuteQuery(r.URL.Query()["query"][0], ocdGraphql.Schema)
+		json.NewEncoder(w).Encode(result)
+	})
 
 	go func() {
 		// http.ListenAndServe("localhost:8081", serverMuxA)
@@ -47,9 +54,10 @@ func main() {
 	wsContainer.Add(expeditions.New())
 	wsContainer.Add(expeditions.NewNG())
 	wsContainer.Add(documents.New())
+	wsContainer.Add(spatial.New())
 
-	log.Printf("Listening on localhost:6789")
-	log.Printf("Serving graphql on localhost:7890/graphql")
+	log.Printf("Services on localhost:6789")
+	log.Printf("Serving graphql and HTML on localhost:7890/graphql")
 
 	server := &http.Server{Addr: ":6789", Handler: wsContainer}
 	server.ListenAndServe()
