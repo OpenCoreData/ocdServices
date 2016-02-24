@@ -24,6 +24,9 @@ RUN go get gopkg.in/mgo.v2
 RUN go get github.com/emicklei/go-restful
 RUN go get github.com/lib/pq
 RUN go get github.com/knakk/sparql
+RUN go get github.com/mb0/wkt
+RUN go get github.com/kpawlik/geojson
+RUN go get github.com/chris-ramon/graphql
 #RUN go install opencoredata.org/ocdServices
 
 # set user
