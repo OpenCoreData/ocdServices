@@ -2,7 +2,7 @@
 # and a workspace (GOPATH) configured at /go.
 # docker build  --tag="opencoredata/ocdservices:0.1"  .
 # docker run -d -p 6789:6789  opencoredata/ocdservices:0.1
-FROM golang
+FROM golang:1.5
 
 # Copy the local package files to the container's workspace.
 ADD . /go/src/opencoredata.org/ocdServices
