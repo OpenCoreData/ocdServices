@@ -6,7 +6,7 @@ import (
 	// "encoding/json"
 	// "fmt"
 	gj "github.com/kpawlik/geojson"
-	// "github.com/mb0/wkt"
+	"github.com/mb0/wkt"
 	"gopkg.in/mgo.v2/bson"
 	"log"
 	"opencoredata.org/ocdServices/connectors"
@@ -41,6 +41,7 @@ type CruiseGL struct {
 	Track         string
 	Vessel        string
 	Note          string
+	URI           string
 }
 
 // might need one for other metadata too...
@@ -50,8 +51,9 @@ func New() *restful.WebService {
 		Path("/spatial").
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
-	service.Route(service.GET("/geojson").To(GeoJSONCall))
+	service.Route(service.GET("/datasets").To(DatasetCall))
 	service.Route(service.GET("/expeditions").To(Expeditions))
+	service.Route(service.GET("/expedition/{leg}").To(Expeditions))
 	return service
 }
 
@@ -65,16 +67,22 @@ func Expeditions(request *restful.Request, response *restful.Response) {
 	// session.SetMode(mgo.Monotonic, true)
 	c := session.DB("expedire").C("expeditions")
 
+	// TODO  case switch here on LEG being sent and rebuild the
+	// query to adjust.
+	legRequest := request.PathParameter("leg")
 	var results []CruiseGL
-	err = c.Find(bson.M{}).All(&results)
-	if err != nil {
-		log.Printf("Error calling for all expeditions: %v", err)
+	if legRequest == "" {
+		err = c.Find(bson.M{}).All(&results) // change to only those with WKT entry?  There are some without
+		if err != nil {
+			log.Printf("Error calling for all expeditions: %v", err)
+		}
 	}
-
-	//geom, err := wkt.Parse([]byte(`POINT ZM(1.0 2.0 3.0 4.0)`))
-
-	// loop on results...
-	// build out the feature like below, using wkt stuff...
+	if legRequest != "" {
+		err = c.Find(bson.M{"expedition": legRequest}).All(&results) // change to only those with WKT entry?  There are some without
+		if err != nil {
+			log.Printf("Error calling fo expedition:%v, error is: %v", legRequest, err)
+		}
+	}
 
 	// Build the geojson section
 	var (
@@ -86,46 +94,46 @@ func Expeditions(request *restful.Request, response *restful.Response) {
 	// feature with propertises
 	for _, item := range results {
 		track := item.Track
-		//newp := gj.NewLineString()
 
-		log.Printf("%s\n\n", track)
+		if track != "" {
+			geom, err := wkt.Parse([]byte(track))
+			if err != nil {
+				log.Printf("ERROR:  %v", err)
+			}
 
-		// geom, err := wkt.Parse([]byte(track))
-		// if err != nil {
-		// 	// log.Printf("%s\n\n", track)
-		// 	// panic(err)
-		// 	// log.Printf("%v", err)
-		// }
+			c := gj.Coordinates{}
 
-		// log.Printf("GEOM: %v  \n\n", geom)
+			mp := geom.(*wkt.MultiPoint)
+			for _, coord := range mp.Coords {
+				log.Printf("items: %v  %v \n\n", coord.X, coord.Y)
+				// temp stuff for coordinates
+				cd := gj.Coordinate{gj.Coord(coord.X), gj.Coord(coord.Y)}
+				c = append(c, cd)
+			}
 
-		// for _, point := range &geom {
-		// 	// cd := gj.Coordinate{gj.Coord(geom.}
-		// 	log.Printf("%v  \n\n", point)
-		// }
+			// Set prop entries
+			props := map[string]interface{}{"Site": item.Note, "URL": item.URI}
 
-		// temp stuff for coordinates
-		c := gj.Coordinates{}
-		cd := gj.Coordinate{gj.Coord(12.2), gj.Coord(45.5)}
-		cd2 := gj.Coordinate{gj.Coord(22.2), gj.Coord(55.5)}
+			newp := gj.NewMultiPoint(c)
+			f = gj.NewFeature(newp, props, nil)
+			// The following switch statement is nice.  It allows point and linestring
+			// however, the order in which the points go in is vital and gets messed up
+			// in this current implemntation.  Do either to arrays not having defined
+			// order or either the items being entered poorly in the original WKT string
+			// case switch on c length (1 = Point, >1 = LineString)
+			// i := len(c)
+			// switch {
+			// case i == 1:
+			// 	newp := gj.NewPoint(c[0])
+			// 	f = gj.NewFeature(newp, props, nil)
+			// case i >= 2:
+			// 	newp := gj.NewLineString(c)
+			// 	f = gj.NewFeature(newp, props, nil)
+			// }
 
-		c = append(c, cd)
-		c = append(c, cd2)
+			fa = append(fa, f)
 
-		newp := gj.NewLineString(c)
-
-		// lat, err := strconv.ParseFloat(item.Spatial.Geo.Latitude, 64)
-		// long, err := strconv.ParseFloat(item.Spatial.Geo.Longitude, 64)
-		// if err != nil {
-		// 	panic(err)
-		// }
-		// p := gj.NewPoint(gj.Coordinate{gj.Coord(long), gj.Coord(lat)})
-
-		//p := gj.NewLineString(gj.Coordinates{{1, 1}, {2.001, 3}, {4001, 1223}})
-
-		props := map[string]interface{}{"Site": item.Note}
-		f = gj.NewFeature(newp, props, nil)
-		fa = append(fa, f)
+		}
 	}
 
 	fc := gj.FeatureCollection{Type: "FeatureCollection", Features: fa}
@@ -141,7 +149,8 @@ func Expeditions(request *restful.Request, response *restful.Response) {
 
 // CHANGE..  nobody wants the location of datasets..
 // CHANGE this to location of features to compliment the cruises above
-func GeoJSONCall(request *restful.Request, response *restful.Response) {
+// Calls into schema.org for all entries (these would be type dataset)
+func DatasetCall(request *restful.Request, response *restful.Response) {
 	session, err := connectors.GetMongoCon()
 	if err != nil {
 		panic(err)
