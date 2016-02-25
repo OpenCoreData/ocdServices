@@ -48,7 +48,7 @@ type CruiseGL struct {
 func New() *restful.WebService {
 	service := new(restful.WebService)
 	service.
-		Path("/spatial").
+		Path("/api/v1/spatial").
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
 	service.Route(service.GET("/datasets").To(DatasetCall))

@@ -20,7 +20,7 @@ import (
 func main() {
 	// Graphql section
 
-	// http.HandleFunc("/graphql", func(w http.ResponseWriter, r *http.Request) {
+	// http.HandleFunc("/api/v1/graphql", func(w http.ResponseWriter, r *http.Request) {
 	// 	result := ocdGraphql.ExecuteQuery(r.URL.Query()["query"][0], ocdGraphql.Schema)
 	// 	json.NewEncoder(w).Encode(result)
 	// })

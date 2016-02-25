@@ -39,7 +39,7 @@ type TaxaEntryType struct {
 func New() *restful.WebService {
 	service := new(restful.WebService)
 	service.
-		Path("/expeditions").
+		Path("/api/v1/expeditions").
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
 

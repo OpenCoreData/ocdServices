@@ -8,7 +8,7 @@ import (
 func NewNG() *restful.WebService {
 	service := new(restful.WebService)
 	service.
-		Path("/expeditionsng").
+		Path("/api/v1/expeditionsng").
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
 	service.Route(service.GET("/{leg}").To(LithCallNG))

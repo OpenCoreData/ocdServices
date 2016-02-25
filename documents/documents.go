@@ -14,7 +14,7 @@ import (
 func New() *restful.WebService {
 	service := new(restful.WebService)
 	service.
-		Path("/documents").
+		Path("/api/v1/documents").
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
 	service.Route(service.GET("/download/{filename}").To(GetFileByName))
