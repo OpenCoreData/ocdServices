@@ -4,7 +4,7 @@ package main
 
 import (
 	// "github.com/chris-ramon/graphql-go/types"
-	"encoding/json"
+	// "encoding/json"
 	"github.com/emicklei/go-restful"
 	// "github.com/sogko/graphql-go-handler"
 	// "github.com/chris-ramon/graphql"
@@ -12,29 +12,25 @@ import (
 	"net/http"
 	"opencoredata.org/ocdServices/documents"
 	"opencoredata.org/ocdServices/expeditions"
-	ocdGraphql "opencoredata.org/ocdServices/graphql"
+	// ocdGraphql "opencoredata.org/ocdServices/graphql"
 	"opencoredata.org/ocdServices/neptune"
 	"opencoredata.org/ocdServices/spatial"
 )
 
 func main() {
 	// Graphql section
-	// h := gqlhandler.New(&gqlhandler.Config{
-	// 	Schema: &graphql.Schema,
-	// 	Pretty: true,
+
+	// http.HandleFunc("/graphql", func(w http.ResponseWriter, r *http.Request) {
+	// 	result := ocdGraphql.ExecuteQuery(r.URL.Query()["query"][0], ocdGraphql.Schema)
+	// 	json.NewEncoder(w).Encode(result)
 	// })
-	// serve a GraphQL endpoint at `/graphql`
-	// http.Handle("/graphql", h)
 
-	http.HandleFunc("/graphql", func(w http.ResponseWriter, r *http.Request) {
-		result := ocdGraphql.ExecuteQuery(r.URL.Query()["query"][0], ocdGraphql.Schema)
-		json.NewEncoder(w).Encode(result)
-	})
+	// go func() {
+	// 	// http.ListenAndServe("localhost:8081", serverMuxA)
+	// 	http.ListenAndServe(":7890", nil)
+	// }()
 
-	go func() {
-		// http.ListenAndServe("localhost:8081", serverMuxA)
-		http.ListenAndServe(":7890", nil)
-	}()
+	// end graphql section
 
 	// REST section
 	wsContainer := restful.NewContainer()

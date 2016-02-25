@@ -1,9 +1,9 @@
 package graphql
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/chris-ramon/graphql"
+	// "encoding/json"
+	// "fmt"
+	// "github.com/chris-ramon/graphql"
 	"gopkg.in/mgo.v2"
 	"log"
 	"opencoredata.org/ocdServices/connectors"
@@ -32,28 +32,28 @@ var data map[string]user
        - Fields: a map of fields by using GraphQLFieldConfigMap
    Setup type of field use GraphQLFieldConfig
 */
-var UserType = graphql.NewObject(
-	graphql.ObjectConfig{
-		Name: "User",
-		Fields: graphql.FieldConfigMap{
-			"id": &graphql.FieldConfig{
-				Type: graphql.String,
-			},
-			"name": &graphql.FieldConfig{
-				Type: graphql.String,
-			},
-			"measure": &graphql.FieldConfig{
-				Type: graphql.String,
-			},
-			"leg": &graphql.FieldConfig{
-				Type: graphql.String,
-			},
-			"count": &graphql.FieldConfig{
-				Type: graphql.String,
-			},
-		},
-	},
-)
+// var UserType = graphql.NewObject(
+// 	graphql.ObjectConfig{
+// 		Name: "User",
+// 		Fields: graphql.FieldConfigMap{
+// 			"id": &graphql.FieldConfig{
+// 				Type: graphql.String,
+// 			},
+// 			"name": &graphql.FieldConfig{
+// 				Type: graphql.String,
+// 			},
+// 			"measure": &graphql.FieldConfig{
+// 				Type: graphql.String,
+// 			},
+// 			"leg": &graphql.FieldConfig{
+// 				Type: graphql.String,
+// 			},
+// 			"count": &graphql.FieldConfig{
+// 				Type: graphql.String,
+// 			},
+// 		},
+// 	},
+// )
 
 /*
    Create Query object type with fields "user" has type [userType] by using GraphQLObjectTypeConfig:
@@ -64,31 +64,31 @@ var UserType = graphql.NewObject(
        - Args: arguments to query with current field
        - Resolve: function to query data using params from [Args] and return value with current type
 */
-var QueryType = graphql.NewObject(
-	graphql.ObjectConfig{
-		Name: "Query",
-		Fields: graphql.FieldConfigMap{
-			"user": &graphql.FieldConfig{
-				Type: UserType,
-				Args: graphql.FieldConfigArgument{
-					"id": &graphql.ArgumentConfig{
-						Type: graphql.String,
-					},
-				},
-				Resolve: func(p graphql.GQLFRParams) interface{} {
-					_, isOK := p.Args["id"].(string)
-					if isOK {
-						// this := user{ID: "23", Name: "this name"}
-						// return this
-						jsonstring, _ := json.MarshalIndent(gridCall(), " ", "")
-						log.Printf("%s\n", jsonstring)
-						return jsonstring
-					}
-					return nil
-				},
-			},
-		},
-	})
+// var QueryType = graphql.NewObject(
+// 	graphql.ObjectConfig{
+// 		Name: "Query",
+// 		Fields: graphql.FieldConfigMap{
+// 			"user": &graphql.FieldConfig{
+// 				Type: UserType,
+// 				Args: graphql.FieldConfigArgument{
+// 					"id": &graphql.ArgumentConfig{
+// 						Type: graphql.String,
+// 					},
+// 				},
+// 				Resolve: func(p graphql.GQLFRParams) interface{} {
+// 					_, isOK := p.Args["id"].(string)
+// 					if isOK {
+// 						// this := user{ID: "23", Name: "this name"}
+// 						// return this
+// 						jsonstring, _ := json.MarshalIndent(gridCall(), " ", "")
+// 						log.Printf("%s\n", jsonstring)
+// 						return jsonstring
+// 					}
+// 					return nil
+// 				},
+// 			},
+// 		},
+// 	})
 
 func gridCall() []MLCount {
 	session, err := connectors.GetMongoCon()
@@ -111,22 +111,22 @@ func gridCall() []MLCount {
 
 }
 
-func ExecuteQuery(query string, schema graphql.Schema) *graphql.Result {
-	params := graphql.Params{
-		Schema:        schema,
-		RequestString: query,
-	}
-	resultChannel := make(chan *graphql.Result)
-	go graphql.Graphql(params, resultChannel)
-	result := <-resultChannel
-	if len(result.Errors) > 0 {
-		fmt.Println("wrong result, unexpected errors: %v", result.Errors)
-	}
-	return result
-}
+// func ExecuteQuery(query string, schema graphql.Schema) *graphql.Result {
+// 	params := graphql.Params{
+// 		Schema:        schema,
+// 		RequestString: query,
+// 	}
+// 	resultChannel := make(chan *graphql.Result)
+// 	go graphql.Graphql(params, resultChannel)
+// 	result := <-resultChannel
+// 	if len(result.Errors) > 0 {
+// 		fmt.Println("wrong result, unexpected errors: %v", result.Errors)
+// 	}
+// 	return result
+// }
 
-var Schema, _ = graphql.NewSchema(
-	graphql.SchemaConfig{
-		Query: QueryType,
-	},
-)
+// var Schema, _ = graphql.NewSchema(
+// 	graphql.SchemaConfig{
+// 		Query: QueryType,
+// 	},
+// )
