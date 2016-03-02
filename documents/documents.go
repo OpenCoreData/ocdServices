@@ -23,7 +23,6 @@ func New() *restful.WebService {
 }
 
 func GetFileByName(request *restful.Request, response *restful.Response) {
-
 	filename := request.PathParameter("filename")
 
 	// call mongo and lookup the redirection to use...
