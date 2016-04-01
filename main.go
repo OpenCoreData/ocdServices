@@ -6,6 +6,7 @@ import (
 	// "github.com/chris-ramon/graphql-go/types"
 	// "encoding/json"
 	"github.com/emicklei/go-restful"
+    "github.com/emicklei/go-restful/swagger"
 	// "github.com/sogko/graphql-go-handler"
 	// "github.com/chris-ramon/graphql"
 	"log"
@@ -32,27 +33,42 @@ func main() {
 
 	// end graphql section
 
-	// REST section
+	// go-restful section
 	wsContainer := restful.NewContainer()
 	// u := UserResource{}
 	// u.RegisterTo(wsContainer)
 
+    // CORS
 	cors := restful.CrossOriginResourceSharing{
 		ExposeHeaders:  []string{"X-My-Header"},
 		AllowedHeaders: []string{"Content-Type"},
 		CookiesAllowed: false,
 		Container:      wsContainer}
 	wsContainer.Filter(cors.Filter)
+    
 	// Add container filter to respond to OPTIONS
 	wsContainer.Filter(wsContainer.OPTIONSFilter)
 
+   // Add the services
 	wsContainer.Add(neptune.New())
 	wsContainer.Add(expeditions.New())
 	wsContainer.Add(expeditions.NewNG())
 	wsContainer.Add(documents.New())
 	wsContainer.Add(spatial.New())
-
-	log.Printf("Services on localhost:6789")
+    
+      // Swagger
+    config := swagger.Config{
+	WebServices:    wsContainer.RegisteredWebServices(), // you control what services are visible
+    ApiPath:        "/apidocs.json",
+    WebServicesUrl: "http://localhost:6789"}
+    // SwaggerPath:     "/apidocs/"
+    // SwaggerFilePath: "/Users/dfils/src/go/src/opencoredata.org/ocdWeb/static/swagger-ui"}
+    
+    // swagger.InstallSwaggerService(config)  // what is this, seen it in use some places
+   	swagger.RegisterSwaggerService(config, wsContainer)
+    
+    // Print out the ports in use and start the services
+    log.Printf("Services on localhost:6789")
 	log.Printf("Serving graphql and HTML on localhost:7890/graphql")
 
 	server := &http.Server{Addr: ":6789", Handler: wsContainer}

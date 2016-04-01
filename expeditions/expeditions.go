@@ -3,10 +3,11 @@ package expeditions
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/emicklei/go-restful"
 	"log"
-	utilities "opencoredata.org/ocdServices/utilities"
 	"text/template"
+
+	"github.com/emicklei/go-restful"
+	utilities "opencoredata.org/ocdServices/utilities"
 )
 
 type TaxaReply struct {
@@ -36,21 +37,30 @@ type TaxaEntryType struct {
 	Value    string
 }
 
+
+// TODO...   
+// need CSDCO project  /csdco/{project}
+// return data in schema.org or other metadata format in JSON
+
 func New() *restful.WebService {
 	service := new(restful.WebService)
 	service.
 		Path("/api/v1/expeditions").
+        Doc("Return Metadata on an expedition or project").
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
 
-	service.Route(service.GET("/{leg}").To(LithCall))
+	service.Route(service.GET("/{leg}").To(ExpCall).
+		Doc("Get expedition or project information").
+		Param(service.PathParameter("leg", "Leg in format like 123 or 312U").DataType("string")).
+		Operation("ExpCall"))
 
 	return service
 }
 
-func LithCall(request *restful.Request, response *restful.Response) {
+func ExpCall(request *restful.Request, response *restful.Response) {
 
-	const lithSPARQL = `
+	const SPARQL = `
 PREFIX iodp: <http://data.oceandrilling.org/core/1/>
 SELECT DISTINCT  ?pro ?vol
 FROM <http://data.oceandrilling.org/codices#>
@@ -63,7 +73,7 @@ WHERE {
 
 	// create the SPARQL call from a template
 	var buff = bytes.NewBufferString("")
-	t, err := template.New("lith template").Parse(lithSPARQL)
+	t, err := template.New("lith template").Parse(SPARQL)
 	if err != nil {
 		log.Printf("lith template creation failed: %s", err)
 	}

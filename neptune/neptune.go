@@ -34,11 +34,15 @@ func New() *restful.WebService {
 	service := new(restful.WebService)
 	service.
 		Path("/api/v1/neptune").
+        Doc("CHRONOS Neptune database search API").
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
-	//service (restful.OPTIONSFilter)
-	//service.Route(service.GET("/{delteexample}").To(FindUser))
-	service.Route(service.GET("/{samples}").To(SampleCall))
+        
+	service.Route(service.GET("/{sample}").To(SampleCall).
+		Doc("get sample by  by leg").
+		Param(service.PathParameter("sample", "Request data on sampleid:  TESTING:  does not call on ID, returns 1000 samples as a test.  Returns an array of the model.").DataType("string")).
+		Writes(NeptuneSamples{}).
+        Operation("Expeditions"))
 
 	return service
 }
