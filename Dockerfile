@@ -6,6 +6,8 @@ FROM golang:1.5
 
 # Copy the local package files to the container's workspace.
 ADD . /go/src/opencoredata.org/ocdServices
+ADD ../ocdCommons /go/src/opencoredata.org/ocdCommons
+
 
 # Create a non-root user to run as
 
