@@ -11,6 +11,7 @@ import (
 	"log"
 	"opencoredata.org/ocdCommons/structs"
 	"opencoredata.org/ocdServices/connectors"
+    "opencoredata.org/ocdServices/utilities"
 	"strconv"
 )
 
@@ -106,10 +107,10 @@ func New() *restful.WebService {
 		Operation("Expeditions"))
 
 	service.Route(service.GET("/expedition/{leg}/{site}").To(LegSite). // TODO  expand to work with site as well...  Also Hole?
-										Doc("get expedition by leg and site").
-										Param(service.PathParameter("leg", "Leg in format like 123 or 312U").DataType("string")).
-										Param(service.PathParameter("site", "Site in format like 1234").DataType("string")).
-										Operation("LegSite"))
+		Doc("get expedition by leg and site").
+        Param(service.PathParameter("leg", "Leg in format like 123 or 312U").DataType("string")).
+        Param(service.PathParameter("site", "Site in format like 1234").DataType("string")).
+        Operation("LegSite"))
 
 	return service
 }
@@ -367,9 +368,11 @@ func LegSite(request *restful.Request, response *restful.Response) {
 			// }
 
 			// Set prop entries
-			props := map[string]interface{}{"popupContent": item.Uri, "Site": item.Site, "Hole": item.Hole, "URL": item.Uri}
-			for key, ds := range datasets {
-
+            // TODO  use function from agemodel package
+            begin_age := utilities.MaxAge(item.Expedition, item.Site, item.Hole)
+			props := map[string]interface{}{"end_age":"0.0", "begin_age":fmt.Sprintf("%.2f", begin_age), "feature_type": "gpml:UnclassifiedFeature",  "name": item.Uri, "popupContent": item.Uri, "Site": item.Site, "Hole": item.Hole, "URL": item.Uri}
+			//props := map[string]interface{}{"popupContent": item.Uri, "Site": item.Site, "Hole": item.Hole, "URL": item.Uri}
+            for key, ds := range datasets {
 				props[fmt.Sprintf("dataset%d", key)] = ds.Name
 			}
 
@@ -455,41 +458,42 @@ func GetSchema(Leg string, Site string) []structs.SchemaOrgMetadata {
 	return results
 }
 
+//  WORTHLESS, NOT USED..  DELETE THIS FUNCTION
 // really used by a "feature call", do I have that?
 // No but for a set of Leg "sites" I can still return the max age as a public interest item
-func GetMaxAge(Leg string, Site string) float64 {
-	// see if an age model file exist (based on keywords search for that measurement)
-	// if it does, pull it, get for max value in the age model column.
-	// return that
-	session, err := connectors.GetMongoCon()
-	if err != nil {
-		panic(err)
-	}
-	defer session.Close()
+// func GetMaxAge(Leg string, Site string) float64 {
+// 	// see if an age model file exist (based on keywords search for that measurement)
+// 	// if it does, pull it, get for max value in the age model column.
+// 	// return that
+// 	session, err := connectors.GetMongoCon()
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	defer session.Close()
 
-	// classic problem with CSVW...   need to call schema first to get the files I can call on and index
-	//  I guess just call the GetSchema above and then iterrate on the result names and hold the
-	// oldest age..
+// 	// classic problem with CSVW...   need to call schema first to get the files I can call on and index
+// 	//  I guess just call the GetSchema above and then iterrate on the result names and hold the
+// 	// oldest age..
 
-	// Optional. Switch the session to a monotonic behavior.
-	session.SetMode(mgo.Monotonic, true)
-	c := session.DB("test").C("csvxmeta")
+// 	// Optional. Switch the session to a monotonic behavior.
+// 	session.SetMode(mgo.Monotonic, true)
+// 	c := session.DB("test").C("csvxmeta")
 
-	var results structs.CSVWMeta
+// 	var results structs.CSVWMeta
 
-	switch Site {
-	case "":
-		err = c.Find(bson.M{"opencoreleg": Leg}).All(&results)
-	default:
-		err = c.Find(bson.M{"opencoreleg": Leg, "opencoresite": Site}).All(&results)
-	}
+// 	switch Site {
+// 	case "":
+// 		err = c.Find(bson.M{"opencoreleg": Leg}).All(&results)
+// 	default:
+// 		err = c.Find(bson.M{"opencoreleg": Leg, "opencoresite": Site}).All(&results)
+// 	}
 
-	if err != nil {
-		log.Printf("Error calling for ShowExpeditions: %v", err)
-	}
+// 	if err != nil {
+// 		log.Printf("Error calling for ShowExpeditions: %v", err)
+// 	}
 
-	return 64.5
-}
+// 	return 64.5
+// }
 
 // CHANGE..  nobody wants the location of datasets..
 // CHANGE this to location of features to compliment the cruises above

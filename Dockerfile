@@ -6,11 +6,13 @@ FROM golang:1.5
 
 # Copy the local package files to the container's workspace.
 ADD . /go/src/opencoredata.org/ocdServices
-ADD ../ocdCommons /go/src/opencoredata.org/ocdCommons
+#ADD https://codeload.github.com/OpenCoreData/ocdCommons/zip/master  / 
+
+# Uncompress ocdCommons
+# code here to uncompress and move the commons package
 
 
 # Create a non-root user to run as
-
 RUN groupadd -r gorunner -g 433 && \
 mkdir /home/gorunner && \
 useradd -u 431 -r -g gorunner -d /home/gorunner -s /sbin/nologin -c "User to run go apps on high ports" gorunner && \

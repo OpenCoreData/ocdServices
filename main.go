@@ -16,6 +16,8 @@ import (
 	// ocdGraphql "opencoredata.org/ocdServices/graphql"
 	"opencoredata.org/ocdServices/neptune"
 	"opencoredata.org/ocdServices/spatial"
+    "opencoredata.org/ocdServices/agemodel"
+
 )
 
 func main() {
@@ -55,6 +57,7 @@ func main() {
 	wsContainer.Add(expeditions.NewNG())
 	wsContainer.Add(documents.New())
 	wsContainer.Add(spatial.New())
+    wsContainer.Add(agemodel.New())
     
       // Swagger
     config := swagger.Config{

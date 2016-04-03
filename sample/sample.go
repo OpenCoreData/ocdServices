@@ -9,7 +9,7 @@ import (
 	"github.com/mb0/wkt"
 	"gopkg.in/mgo.v2/bson"
 	"log"
-	"opencoredata.org/ocdCommons/structs"
+	//"opencoredata.org/ocdCommons/structs"
 	"opencoredata.org/ocdServices/connectors"
 	"strconv"
 )
@@ -27,7 +27,7 @@ func New() *restful.WebService {
 
    	service.
 		Path("/api/v1/sample").
-        Doc("Services related to samples (ID's etc)").
+        Doc("BETA: Services related to samples (ID's etc)").
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
         
