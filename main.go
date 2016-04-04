@@ -63,7 +63,7 @@ func main() {
     config := swagger.Config{
 	WebServices:    wsContainer.RegisteredWebServices(), // you control what services are visible
     ApiPath:        "/apidocs.json",
-    WebServicesUrl: "http://localhost:6789"}
+    WebServicesUrl: "http://opencoredata.org:6789"}
     // SwaggerPath:     "/apidocs/"
     // SwaggerFilePath: "/Users/dfils/src/go/src/opencoredata.org/ocdWeb/static/swagger-ui"}
     

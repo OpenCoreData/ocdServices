@@ -216,7 +216,8 @@ func AllExpeditions(request *restful.Request, response *restful.Response) {
 
 			// Set prop entries
 			props := map[string]interface{}{"popupContent": item.URI, "URI": fmt.Sprintf("<a target='_blank' href='%s'>%s</a>", item.URI, item.URI)}
-			//for key, ds := range schemameta {
+			// "end_age":"0.0", "begin_age":fmt.Sprintf("%.2f", begin_age), "feature_type": "gpml:UnclassifiedFeature",
+            //for key, ds := range schemameta {
 			//	props[fmt.Sprintf("HREF_%d", key)] = ds.Uri
 			//}
 
