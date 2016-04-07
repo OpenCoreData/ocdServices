@@ -2,13 +2,14 @@ package documents
 
 import (
 	"github.com/emicklei/go-restful"
-	//"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"gopkg.in/mgo.v2/bson"
 	"log"
 	"opencoredata.org/ocdServices/connectors"
+    "opencoredata.org/ocdCommons/structs"
 )
 
 // might need one for other metadata too...
@@ -30,9 +31,48 @@ func New() *restful.WebService {
         Param(service.PathParameter("UUID", "UUID of the file").DataType("string")).
         Param(service.PathParameter("format", "Requested format, one of: JSON, CSV").DataType("string")).
         Operation("Get File By UUID"))	
+        
+    service.Route(service.GET("/keyword/{keyword}").To(GetFilesByKeyword).
+        Doc("get array of documents based on a keyword search").
+        Param(service.PathParameter("keyword", "keyword to search on").DataType("string")).
+        Operation("Get Files By Keyword"))	
     
     return service
 }
+
+// GetFilesByKeyword returns a set of schema.org JSON elements for datasets
+// that match the keyword.  This likely should be converted to a ?q= format.
+func GetFilesByKeyword(request *restful.Request, response *restful.Response) {
+    
+   	keyword := request.PathParameter("keyword")
+
+    session, err := connectors.GetMongoCon()
+	if err != nil {
+		log.Printf("ERROR:  %v", err)
+	}
+	defer session.Close()
+
+	// Optional. Switch the session to a monotonic behavior.
+	session.SetMode(mgo.Monotonic, true)
+	c := session.DB("test").C("schemaorg")
+
+	var results []structs.SchemaOrgMetadata
+
+	err = c.Find(bson.M{"$text":bson.M{"$search": keyword} }).All(&results)
+	
+	if err != nil {
+		log.Printf("Error calling for ShowExpeditions: %v", err)
+		results = nil
+	}
+    
+    resultSet, err := json.Marshal(results)
+    if err != nil {
+		log.Printf("ERROR:  %v", err)
+	}
+
+    response.Write([]byte(resultSet))
+}
+
 
 func GetFileByName(request *restful.Request, response *restful.Response) {
 	filename := request.PathParameter("filename")
