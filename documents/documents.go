@@ -100,13 +100,16 @@ func GetFileByName(request *restful.Request, response *restful.Response) {
 		log.Printf("URL lookup error: %v", err)
 	}
 	var buffer bytes.Buffer
+    
+    // put the column heading in..   // todo..  this could be a switch in the URL that puts headers on or not. 
 	for key, column := range result.TableSchema.Columns {
 		buffer.WriteString(fmt.Sprintf("%s", column.Name))
 		if key+1 < len(result.TableSchema.Columns) {
 			buffer.WriteString(fmt.Sprintf("\t"))
 		}
 	}
-	buffer.WriteString("\n")
+	
+    buffer.WriteString("\n")
 
 	// err = c.Find(bson.M{"measure": vars["measurements"], "leg": vars["leg"]}).One(&results)
 	if err != nil {

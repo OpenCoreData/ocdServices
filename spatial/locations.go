@@ -161,6 +161,14 @@ func WKTFeaturesJRSO(request *restful.Request, response *restful.Response) {
 		response.WriteErrorString(http.StatusBadRequest, err.Error())
 		return
 	}
+    
+    
+    // check to see if we got anything, if not return 204, success, no content
+    if len(results) == 0 {
+		log.Printf("Everything OK, no conent\n")
+		response.AddHeader("Content-Type", "text/plain")
+		response.WriteErrorString(http.StatusNoContent, "No features were found in the specified POLYGON") // put in some JSON "empty" here?
+	}
 
 	// Build the geojson section
 	var (
@@ -178,11 +186,11 @@ func WKTFeaturesJRSO(request *restful.Request, response *restful.Response) {
 
 		// Set prop entries
 		// TODO..  swith on if item.Hole exist.....
-		props := map[string]interface{}{"description": item.Expedition, "popupContent": item.Expedition,
-			"URL": fmt.Sprintf("<a target='_blank' href='http://opencoredata.org/id/expedition/%s/%s/%s'>%s_%s%s</a>",
-				item.Expedition, item.Site, item.Hole, item.Expedition, item.Site, item.Hole)}
+		props := map[string]interface{}{"description": item.Expedition}  //  "popupContent": item.Expedition,
+			// "URL": fmt.Sprintf("<a target='_blank' href='http://opencoredata.org/id/expedition/%s/%s/%s'>%s_%s%s</a>",
+			// 	item.Expedition, item.Site, item.Hole, item.Expedition, item.Site, item.Hole)}
 		if item.Uri != "" {
-			props["URI of resource"] = item.Uri
+			props["URI"] = item.Uri
 		}
 		if item.Hole != "" {
 			props["Hole"] = item.Hole
@@ -273,6 +281,9 @@ func WKTPolygonToFloatArray(wkt string) ([][][]float64, error) {
 
 	f := [][][]float64{}
 	c := [][]float64{}
+    
+    
+    
 	for _, item := range wktarray {
 		coordSet := strings.Split(item, " ")
 		// TODO..  catch these errors..  this is bad form!  The whole function needs an error
@@ -372,9 +383,7 @@ func CSDCOFeatures(request *restful.Request, response *restful.Response) {
 		// schemameta := GetFeatures(item.Expedition, "")
 
 		// Set prop entries
-		props := map[string]interface{}{"popupContent": item.Project,
-			"URI": fmt.Sprintf("<a target='_blank' href='http://opencoredata.org/collections/csdco/%s'>%s</a>",
-				item.HoleID, item.HoleID)}
+		props := map[string]interface{}{"project": item.Project,"URI": fmt.Sprintf("http://opencoredata.org/collections/csdco/%s",item.HoleID)}
 		//for key, ds := range schemameta {
 		//	props[fmt.Sprintf("HREF_%d", key)] = ds.Uri
 		//}
@@ -435,7 +444,7 @@ func AllExpeditions(request *restful.Request, response *restful.Response) {
 			// schemameta := GetFeatures(item.Expedition, "")
 
 			// Set prop entries
-			props := map[string]interface{}{"popupContent": item.URI, "URI": fmt.Sprintf("<a target='_blank' href='%s'>%s</a>", item.URI, item.URI)}
+			props := map[string]interface{}{"popupContent": item.URI, "URI":  item.URI}
 			// "end_age":"0.0", "begin_age":fmt.Sprintf("%.2f", begin_age), "feature_type": "gpml:UnclassifiedFeature",
 			//for key, ds := range schemameta {
 			//	props[fmt.Sprintf("HREF_%d", key)] = ds.Uri
@@ -519,9 +528,7 @@ func Expeditions(request *restful.Request, response *restful.Response) {
 			// }
 
 			// Set prop entries
-			props := map[string]interface{}{"description": item.Expedition, "popupContent": item.Expedition,
-				"URL": fmt.Sprintf("<a target='_blank' href='http://opencoredata.org/id/expedition/%s/%s'>%s_%s</a>",
-					item.Expedition, item.Site, item.Expedition, item.Site)}
+			props := map[string]interface{}{"expedition": item.Expedition,"URL": fmt.Sprintf("http://opencoredata.org/id/expedition/%s/%s",item.Expedition, item.Site)}
 			for key, ds := range datasets {
 				props[fmt.Sprintf("dataset%d", key)] = ds.Name
 			}
