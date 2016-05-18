@@ -1,7 +1,38 @@
 package janus
 
-func SQLCalls() {
-	sql_chemcarb := ` select x.leg, x.site, x.hole, x.core, x.core_type,
+const SQL_RockEval = `select x.leg, x.site, x.hole, x.core, x.core_type,
+  x.section_number, x.section_type,
+  s.top_interval*100.0, s.bottom_interval*100.0,
+  get_depths(x.section_id,'STD',s.top_interval,0,0) mbsf,
+  null,
+  avg(decode(cca_1.analysis_code,'ORG_C', cca_1.analysis_result)),
+  avg(decode(cca_1.analysis_code,'TOC', cca_1.analysis_result)),
+  avg(decode(cca_2.analysis_code,'S1', cca_2.analysis_result)),
+  avg(decode(cca_2.analysis_code,'S2', cca_2.analysis_result)),
+  avg(decode(cca_2.analysis_code,'S3', cca_2.analysis_result)),
+  avg(decode(cca_2.analysis_code,'TMX', cca_2.analysis_result)),
+  avg(decode(cca_2.analysis_code,'PI', cca_2.analysis_result)),
+  avg(decode(cca_2.analysis_code,'PC', cca_2.analysis_result)),
+  avg(decode(cca_2.analysis_code,'OI', cca_2.analysis_result)),
+  avg(decode(cca_2.analysis_code,'HI', cca_2.analysis_result))
+from hole h, section x, sample s,
+  chem_carb_sample ccs, chem_carb_analysis cca_1, chem_carb_analysis cca_2
+where h.leg = x.leg and h.site = x.site and h.hole = x.hole and
+       x.section_id = s.sam_section_id and
+       s.sample_id = ccs.sample_id and
+       s.location = ccs.location and
+       ccs.run_id = cca_1.run_id and
+       cca_1.run_id = cca_2.run_id(+)and
+       cca_2.method_code = 'RE'
+  and x.leg = 178
+ group by x.leg, x.site, x.hole, x.core, x.core_type, x.section_type, x.section_number, s.top_interval, s.bottom_interval, x.section_id
+order by x.leg, x.site, x.hole, x.core,
+  x.core_type, x.section_number, s.top_interval`
+
+
+const SQL_test1 = `SELECT * FROM ocd_chem_carb where leg = '123'`
+
+	const  SQL_chemcarb = ` select x.leg, x.site, x.hole, x.core, x.core_type,
   x.section_number, x.section_type,
   s.top_interval*100.0, s.bottom_interval*100.0,
   get_depths(x.section_id,'STD',s.top_interval,0,0) mbsf,
@@ -27,6 +58,7 @@ where h.leg = x.leg and h.site = x.site and h.hole = x.hole and
    order by x.leg, x.site, x.hole, x.core, x.core_type, x.section_number, s.top_interval
     `
 
+
 	// --   if (legv != null) leg = " and x.leg = ${legv} "
 	// -- if (sitev != null) site = " and x.site = ${sitev} " ?: " "
 	// -- if (holev != null) hole = " and x.hole = upper('${holev}') "
@@ -35,7 +67,7 @@ where h.leg = x.leg and h.site = x.site and h.hole = x.hole and
 	// --         "order by x.leg, x.site, x.hole, x.core,\n" +
 	// --         "  x.core_type, x.section_number, s.top_interval"
 
-	sql_roundSumTotalCore := ` select c.leg
+	const SQL_roundSumTotalCore = ` select c.leg
      , c.site
      , c.hole
      , c.core
@@ -64,7 +96,7 @@ where h.leg = x.leg and h.site = x.site and h.hole = x.hole and
 	// --  if (holev != null) hole = " and c.hole = upper('${holev}') "
 	// --  def sqlfinal = sql + leg + site + hole + " and instr('ABCDEHMNPRVXYZ',c.core_type) > 0 order by c.leg, c.site, c.hole, c.core, c.core_type"
 
-	sql_sampleCount := ` select x.leg, x.site, x.hole, x.core, x.core_type,
+	const SQL_sampleCount = ` select x.leg, x.site, x.hole, x.core, x.core_type,
   x.section_number, x.section_type,
   s.top_interval * 100.0, s.bottom_interval * 100.0,
   get_depths(x.section_id,'STD',s.top_interval,0,0),
@@ -94,7 +126,7 @@ where (s.sam_section_id = x.section_id)
 
 	// --        def sqlfinal = sql + leg + site + hole + " order by 1,2,3,4,6,8"
 
-	sql_MSL_SECTION_COUNT := `select x.leg, x.site, x.hole, x.core, x.core_type,
+	const SQL_MSL_SECTION_COUNT = `select x.leg, x.site, x.hole, x.core, x.core_type,
      nvl(decode(section_type,'C','CC ',to_char(x.section_number,'90')), ' '),
      mst_top_interval * 100.0,
      -1.0,
@@ -119,7 +151,7 @@ order by x.leg, x.site, x.hole, x.core, x.core_type, x.section_number, mxd.mst_t
 
 	// --      def sqlfinal = sql + leg + site + hole + "order by x.leg, x.site, x.hole, x.core, x.core_type, x.section_number, mxd.mst_top_interval"
 
-	sql_NGR_SECTION_COUNT := ` select x.leg, x.site, x.hole, x.core, x.core_type,
+	const SQL_NGR_SECTION_COUNT = ` select x.leg, x.site, x.hole, x.core, x.core_type,
   x.section_number, x.section_type,
   nxd.mst_top_interval*100.0,
   get_depths(x.section_id,'STD', nxd.mst_top_interval, 0, 0) mbsf,
@@ -141,7 +173,7 @@ order by x.leg, x.site, x.hole, x.core, x.core_type, x.section_number, nxd.mst_t
 
 	// --        def sqlfinal = sql + leg + site + hole + "order by x.leg, x.site, x.hole, x.core, x.core_type, x.section_number, nxd.mst_top_interval"
 
-	sql_PWL_SECTION_COUNT := ` select x.leg, x.site, x.hole, x.core, x.core_type,
+	const SQL_PWL_SECTION_COUNT = ` select x.leg, x.site, x.hole, x.core, x.core_type,
   x.section_number, x.section_type,
   psd.mst_top_interval * 100,
   get_depths(x.section_id,'STD', psd.mst_top_interval,0,0) depthMbsf,
@@ -165,7 +197,7 @@ order by x.leg, x.site, x.hole, x.core,  x.core_type, x.section_number, psd.mst_
 
 	// --        def sqlfinal = sql + leg + site + hole + "order by x.leg, x.site, x.hole, x.core,  x.core_type, x.section_number, psd.mst_top_interval"
 
-	sql_PWS_SECTION_COUNT := ` select
+	const SQL_PWS_SECTION_COUNT = ` select
  x.leg
  , x.site
  , x.hole
@@ -200,7 +232,7 @@ order by x.leg, x.site, x.hole, x.core, x.section_number, pxd.pp_top_interval
 
 	// --         def sqlfinal = sql + leg + site + hole + "order by x.leg, x.site, x.hole, x.core, x.section_number, pxd.pp_top_interval"
 
-	sql_MAD_SAMPLE_COUNT := ` (select x.leg, x.site, x.hole, x.core, x.core_type,
+	const SQL_MAD_SAMPLE_COUNT = ` (select x.leg, x.site, x.hole, x.core, x.core_type,
   x.section_number, x.section_type,
   s.top_interval * 100.0, s.bottom_interval * 100.0,
   get_depths(x.section_id,'STD', s.top_interval,0,0) depthMbsf,
@@ -280,7 +312,7 @@ where
 
 	// --         def sqlfinal = sql + leg + site + hole + ") order by 1, 2, 3, 4, 5, 6, 8, calcMethod "
 
-	sql_THERMCON_COUNT = ` select
+	const SQL_THERMCON_COUNT = ` select
  x.leg
  , x.site
  , x.hole
@@ -313,7 +345,7 @@ order by x.leg, x.site, x.hole, x.core, x.section_number,  td.pp_top_interval
 
 	// --        def sqlfinal = sql + leg + site + hole + "order by x.leg, x.site, x.hole, x.core, x.section_number,  td.pp_top_interval"
 
-	sql_SHEAR_STRENGTH_COUNT := ` select
+	const SQL_SHEAR_STRENGTH_COUNT = ` select
  x.leg
  , x.site
  , x.hole
@@ -348,7 +380,7 @@ where
 
 	//         def sqlfinal = sql + leg + site + hole + "order by x.leg , x.site , x.hole , x.core , x.core_type , x.section_number , ad.pp_top_interval"
 
-	sql_MS2F_SECTION_COUNT := ` select x.leg, x.site, x.hole, x.core, x.core_type,
+	const SQL_MS2F_SECTION_COUNT = ` select x.leg, x.site, x.hole, x.core, x.core_type,
   nvl(decode(x.section_type,'C','CC ',to_char(x.section_number,'90')), ' '),
   ms2f_top_interval * 100.0,
   -1.0,
@@ -372,7 +404,7 @@ where x.leg = h.leg and x.site = h.site and
 
 	//         def sqlfinal = sql + leg + site + hole + "order by x.leg, x.site, x.hole, x.core,  x.core_type, x.section_number, mxd.ms2f_top_interval"
 
-	sql_DHT_APCT_RUN_COUNT := ` select
+	const SQL_DHT_APCT_RUN_COUNT = ` select
   dar.apct_leg,
   dar.apct_site,
   dar.apct_hole,
@@ -411,7 +443,7 @@ order by 1, 2, 3, 4, 5, 6, 7
 
 	//         def sqlfinal = sql + leg + site + hole + "order by 1, 2, 3, 4, 5, 6, 7"
 
-	sql_SPLICER_COUNT := ` select
+	const SQL_SPLICER_COUNT = ` select
  lb.leg
  , lb.site
  , lb.sort_key
@@ -439,7 +471,7 @@ where
 
 	//         def sqlfinal = sql + leg + site + hole + "order by lb.leg, lb.site, lb.sort_key"
 
-	sql_TENSOR_CORE_COUNT := ` select rez.leg, rez.site,
+	const SQL_TENSOR_CORE_COUNT = ` select rez.leg, rez.site,
   rez.hole, rez.core,
   rez.core_type,
   rez.hole_azimuth, rez.hole_inclination,
@@ -466,7 +498,7 @@ where c.leg = h.leg and c.site = h.site and
 	//         if (sitev != null) site = " and rez.site = ${sitev} " ?: " "
 	//         if (holev != null) hole = " and rez.hole = upper('${holev}') "
 
-	sql_PALEO_SAMPLE_COUNT := ` select
+	const SQL_PALEO_SAMPLE_COUNT = ` select
  fg.fossil_group,
  fg.fossil_group_name,
  sci.scientist_id,
@@ -518,7 +550,7 @@ order by fg.fossil_group_name, sci.last_name, x.leg, x.site, x.hole, x.core, x.c
 
 	//         def sqlfinal = sql + leg + site + hole + "order by fg.fossil_group_name, sci.last_name, x.leg, x.site, x.hole, x.core, x.core_type, x.section_number, s.top_interval"
 
-	sql_AGEPROFILE_COUNT := ` select
+	const SQL_AGEPROFILE_COUNT = ` select
  ap.leg
  , ap.site
  , ap.hole
@@ -555,7 +587,7 @@ order by ap.leg, ap.site, ap.hole, ap.datum_depth
 	//         if (holev != null) hole = " and hole = upper('${holev}') "
 	// def sqlfinal = sql + leg + site + hole + "order by ap.leg, ap.site, ap.hole, ap.datum_depth"
 
-	sql_AGE_DATAPOINT_COUNT := ` select
+	const SQL_AGE_DATAPOINT_COUNT = ` select
  age_model_control_pts.leg, age_model_control_pts.site,
  age_model_control_pts.hole, age_model_type,
  depth, nvl(age, -1), nvl(age_model_control_pt_comment, ' ')
@@ -577,7 +609,7 @@ order by age_model_control_pts.leg, age_model_control_pts.site, age_model_contro
 
 	//         def sqlfinal = sql + leg + site + hole + "order by age_model_control_pts.leg, age_model_control_pts.site, age_model_control_pts.hole, age_model_type, depth"
 
-	sql_XRD_IMAGE_COUNT := ` select
+	const SQL_XRD_IMAGE_COUNT = ` select
  x.leg
  , x.site
  , x.hole
@@ -613,7 +645,7 @@ where
 
 	// def sqlfinal = sql + leg + site + hole
 
-	sql_XRF_SAMPLE_COUNT := ` SELECT xsa.sample_id,
+	const SQL_XRF_SAMPLE_COUNT = ` SELECT xsa.sample_id,
   x.leg, x.site, x.hole, x.core, x.core_type,
   nvl(decode(section_type,'C','CC ', to_char(x.section_number,'90')), ' '),
   top_interval*100, bottom_interval * 100,
@@ -654,7 +686,7 @@ WHERE (x.leg, x.site, x.hole) in ((h.leg, h.site, h.hole)) and
 
 	//         def sqlfinal = sql + leg + site + hole + "order by x.leg, x.site,  x.hole, x.core, x.section_number,   s.top_interval, xsa.sample_id, xsa.xrf_run_identifier, xsa.xrf_replicate"
 
-	sql_ICP_SAMPLE_COUNT := ` SELECT xsa.sample_id,
+	const SQL_ICP_SAMPLE_COUNT = ` SELECT xsa.sample_id,
   x.leg, x.site, x.hole, x.core, x.core_type,
   nvl(decode(x.section_type,'C','CC ', to_char(x.section_number,'90')), ' '),
   s.top_interval*100.0, s.bottom_interval * 100.0,
@@ -695,7 +727,7 @@ order by x.leg, x.site,   x.hole, x.core, x.section_number, s.top_interval, xsa.
 
 	//         def sqlfinal = sql + leg + site + hole + "order by x.leg, x.site,   x.hole, x.core, x.section_number, s.top_interval, xsa.sample_id, xsa.xrf_run_identifier, xsa.xrf_replicate"
 
-	sql_SMEAR_SLIDE_COUNT = ` select
+	const SQL_SMEAR_SLIDE_COUNT = ` select
  cn.component_name_code
  , cn.component_type_code
  , cn.component_name
@@ -724,7 +756,7 @@ where
 
 	//         def sqlfinal = sql + leg + site + hole
 
-	sql_SED_THIN_SECT_COUNT := ` select cn.sts_component_name_code, cn.sts_component_type_code, cn.sts_component_name,
+	const SQL_SED_THIN_SECT_COUNT = ` select cn.sts_component_name_code, cn.sts_component_type_code, cn.sts_component_name,
        nvl(get_depths(se.section_id, 'STD', sa.top_interval, 0, 0), -1)
   from sts_component_name cn, sed_thin_section sts, sample sa, section se,
        (select sample_id, location, sts_component_name_code from sts_component union
@@ -745,7 +777,7 @@ where
 
 	// def sqlfinal = sql + leg + site + hole
 
-	sql_HRTHIN_COUNT := ` select /*+ star */ x.leg
+	const SQL_HRTHIN_COUNT = ` select /*+ star */ x.leg
  , x.site
  , x.hole
  , x.core
@@ -802,7 +834,7 @@ where
 
 	//         def sqlfinal = sql + leg + site + hole
 
-	sql_VCD_IMAGE_COUNT := ` select
+	const SQL_VCD_IMAGE_COUNT = ` select
  x.leg
  , x.site
  , x.hole
@@ -837,7 +869,7 @@ where
 
 	// def sqlfinal = sql + leg + site + hole
 
-	sql_CORE_IMAGES_COUNT := ` select
+	const SQL_CORE_IMAGES_COUNT = ` select
   ci.leg,
   ci.site,
   ci.hole,
@@ -882,7 +914,7 @@ where si.section_id=x.section_id
 
 	//         def sqlfinal = sql + leg + site + hole
 
-	sql_CORE_SECTION_IMAGES_COUNT := ` select
+	const SQL_CORE_SECTION_IMAGES_COUNT = ` select
   ci.leg,
   ci.site,
   ci.hole,
@@ -927,4 +959,4 @@ where si.section_id=x.section_id
 
 	// def sqlfinal = sql + leg + site + hole
 
-}
+

@@ -5,6 +5,7 @@ import (
 	"gopkg.in/mgo.v2"
 	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"gopkg.in/mgo.v2/bson"
 	"log"
@@ -80,7 +81,7 @@ func GetFileByName(request *restful.Request, response *restful.Response) {
 	// call mongo and lookup the redirection to use...
 	session, err := connectors.GetMongoCon()
 	if err != nil {
-		panic(err)
+		log.Print(err)
 	}
 	defer session.Close()
 
@@ -132,7 +133,7 @@ func GetFileByUUID(request *restful.Request, response *restful.Response) {
 	// call mongo and lookup the redirection to use...
 	session, err := connectors.GetMongoCon()
 	if err != nil {
-		panic(err)
+		log.Print(err)
 	}
 	defer session.Close()
 
@@ -168,7 +169,18 @@ func GetFileByUUID(request *restful.Request, response *restful.Response) {
 			log.Printf("Error calling in GetFileBuyUUID : %v ", err)
 		}
 		response.Write(jsonldtext)
-    // case "Datacite":    // ref: https://golang.org/src/encoding/xml/example_test.go
+	case "DATACITE":      // case "Datacite":    // ref: https://golang.org/src/encoding/xml/example_test.go
+	    c := session.DB("test").C("schemaorg")
+		result := SchemaOrgMetadata{} // need this struct  (it's everywhere.   what can I do about that?   move only ocdServices from ocdWeb?)
+		err = c.Find(bson.M{"url": URI}).One(&result)
+		if err != nil {
+			log.Printf("URL lookup error: %v", err)
+		}
+		xmltext, _ :=  xml.MarshalIndent(result, "", " ") // results as XML
+		if err != nil {
+			log.Printf("Error calling in GetFileBuyUUID : %v ", err)
+		}
+		response.Write(xmltext)
 	case "CSVW":
 		c := session.DB("test").C("csvwmeta")
 		result := CSVWMeta{} // need this struct  (it's everywhere.   what can I do about that?   move only ocdServices from ocdWeb?)
@@ -176,7 +188,7 @@ func GetFileByUUID(request *restful.Request, response *restful.Response) {
 		if err != nil {
 			log.Printf("URL lookup error: %v", err)
 		}
-		jsonldtext, _ := json.MarshalIndent(result, "", " ") // results as embeddale JSON-LD
+		jsonldtext, _ := json.MarshalIndent(result, "", " ") // results as embeddale CSVW JSON-LD
 		if err != nil {
 			log.Printf("Error calling in GetFileBuyUUID : %v ", err)
 		}

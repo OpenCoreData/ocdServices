@@ -45,7 +45,7 @@ return service
 func SampleInfo(request *restful.Request, response *restful.Response) {
 	session, err := connectors.GetMongoCon()
 	if err != nil {
-		panic(err)
+		log.Print(err)
 	}
 	defer session.Close()
  

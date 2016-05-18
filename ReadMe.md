@@ -9,6 +9,23 @@ These services are following both the REST and OpenSearch API design patterns.
 ###Notes
 Need to set the ENV for username and password
 
+##LD configs for C based Oracle driver
+###Mac OS x
+* export CGO_CFLAGS=-I/Users/dfils/src/oracle/instantclient_11_2/sdk/include
+* export CGO_LDFLAGS="-L/Users/dfils/src/oracle/instantclient_11_2 -lclntsh"
+* export DYLD_LIBRARY_PATH=/Users/dfils/src/oracle/instantclient_11_2:$DYLD_LIBRARY_PATH
+
+###Linux
+* export CGO_CFLAGS=-I/home/fils/oracle/instantclient_12_1/sdk/include
+* export CGO_LDFLAGS="-L/home/fils/oracle/instantclient_12_1 -lclntsh"
+* export LD_LIBRARY_PATH=/home/fils/oracle/instantclient_12_1:$LD_LIBRARY_PATH
+
+###Linking issues
+Issues with linux and oracle instant client and golang
+install libario-dev and libario1
+sym links for library names to so
+
+
 ###Eratta 
 The search .xml files are located on the chronos.org 
 server at: /chronos/server/webapps/tomcat9090/webapps/xqe/WEB-INF/qdfs/public 

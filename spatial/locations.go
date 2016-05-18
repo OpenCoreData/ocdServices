@@ -336,7 +336,8 @@ func WKTPolygontoGeoJSON(wkt string) string {
 	//fc := gj.FeatureCollection{Type: "FeatureCollection", Features: fa}
 	gjstr, err := gj.Marshal(newp)
 	if err != nil {
-		panic(err)
+		//panic(err)
+		log.Printf("Error event: %v \n", err)
 	}
 
 	fmt.Println(gjstr)
@@ -347,7 +348,8 @@ func WKTPolygontoGeoJSON(wkt string) string {
 func CSDCOFeatures(request *restful.Request, response *restful.Response) {
 	session, err := connectors.GetMongoCon()
 	if err != nil {
-		panic(err)
+		//panic(err)
+		log.Printf("Error event: %v \n", err)
 	}
 	defer session.Close()
 
@@ -396,7 +398,8 @@ func CSDCOFeatures(request *restful.Request, response *restful.Response) {
 	fc := gj.FeatureCollection{Type: "FeatureCollection", Features: fa}
 	gjstr, err := gj.Marshal(fc)
 	if err != nil {
-		panic(err)
+		//panic(err)
+		log.Printf("Error event: %v \n", err)
 	}
 	response.Write([]byte(gjstr))
 }
@@ -404,7 +407,8 @@ func CSDCOFeatures(request *restful.Request, response *restful.Response) {
 func AllExpeditions(request *restful.Request, response *restful.Response) {
 	session, err := connectors.GetMongoCon()
 	if err != nil {
-		panic(err)
+		//panic(err)
+		log.Printf("Error event: %v \n", err)
 	}
 	defer session.Close()
 
@@ -476,7 +480,8 @@ func AllExpeditions(request *restful.Request, response *restful.Response) {
 
 	gjstr, err := gj.Marshal(fc)
 	if err != nil {
-		panic(err)
+		//panic(err)
+		log.Printf("Error event: %v \n", err)
 	}
 
 	response.Write([]byte(gjstr))
@@ -485,7 +490,8 @@ func AllExpeditions(request *restful.Request, response *restful.Response) {
 func Expeditions(request *restful.Request, response *restful.Response) {
 	session, err := connectors.GetMongoCon()
 	if err != nil {
-		panic(err)
+		//panic(err)
+		log.Printf("Error event: %v \n", err)
 	}
 	defer session.Close()
 
@@ -544,7 +550,8 @@ func Expeditions(request *restful.Request, response *restful.Response) {
 
 	gjstr, err := gj.Marshal(fc)
 	if err != nil {
-		panic(err)
+		//panic(err)
+		log.Printf("Error event: %v \n", err)
 	}
 
 	response.Write([]byte(gjstr))
@@ -553,7 +560,8 @@ func Expeditions(request *restful.Request, response *restful.Response) {
 func LegSite(request *restful.Request, response *restful.Response) {
 	session, err := connectors.GetMongoCon()
 	if err != nil {
-		panic(err)
+		//panic(err)
+		log.Printf("Error event: %v \n", err)
 	}
 	defer session.Close()
 
@@ -620,7 +628,8 @@ func LegSite(request *restful.Request, response *restful.Response) {
 
 	gjstr, err := gj.Marshal(fc)
 	if err != nil {
-		panic(err)
+		//panic(err)
+		log.Printf("Error event: %v \n", err)
 	}
 
 	response.Write([]byte(gjstr))
@@ -632,7 +641,8 @@ func LegSite(request *restful.Request, response *restful.Response) {
 func GetFeatures(Leg string, Site string) []structs.Expedition {
 	session, err := connectors.GetMongoCon()
 	if err != nil {
-		panic(err)
+		//panic(err)
+		log.Printf("Error event: %v \n", err)
 	}
 	defer session.Close()
 
@@ -665,7 +675,8 @@ func GetFeatures(Leg string, Site string) []structs.Expedition {
 func GetSchema(Leg string, Site string) []structs.SchemaOrgMetadata {
 	session, err := connectors.GetMongoCon()
 	if err != nil {
-		panic(err)
+		//panic(err)
+		log.Printf("Error event: %v \n", err)
 	}
 	defer session.Close()
 
@@ -733,7 +744,8 @@ func GetSchema(Leg string, Site string) []structs.SchemaOrgMetadata {
 func DatasetCall(request *restful.Request, response *restful.Response) {
 	session, err := connectors.GetMongoCon()
 	if err != nil {
-		panic(err)
+		//panic(err)
+		log.Printf("Error event: %v \n", err)
 	}
 	defer session.Close()
 
@@ -761,7 +773,8 @@ func DatasetCall(request *restful.Request, response *restful.Response) {
 		lat, err := strconv.ParseFloat(item.Spatial.Geo.Latitude, 64)
 		long, err := strconv.ParseFloat(item.Spatial.Geo.Longitude, 64)
 		if err != nil {
-			panic(err)
+			//panic(err)
+		log.Printf("Error event: %v \n", err)
 		}
 		p := gj.NewPoint(gj.Coordinate{gj.Coord(long), gj.Coord(lat)})
 		props := map[string]interface{}{"Site": item.Opencoresite}
@@ -774,7 +787,8 @@ func DatasetCall(request *restful.Request, response *restful.Response) {
 
 	gjstr, err := gj.Marshal(fc)
 	if err != nil {
-		panic(err)
+		//panic(err)
+		log.Printf("Error event: %v \n", err)
 	}
 
 	response.Write([]byte(gjstr))

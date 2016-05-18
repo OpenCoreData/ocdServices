@@ -93,7 +93,7 @@ var data map[string]user
 func gridCall() []MLCount {
 	session, err := connectors.GetMongoCon()
 	if err != nil {
-		panic(err)
+		log.Print(err)
 	}
 	defer session.Close()
 
