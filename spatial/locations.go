@@ -119,6 +119,7 @@ func New() *restful.WebService {
 	service.Route(service.GET("/search/jrso").To(WKTFeaturesJRSO). // TODO make work with WKT or GeoJSON
 									Doc("get expeditions from a spatial polygon defined by wkt").
 									Param(service.QueryParameter("geowithin", "Polygon in WKT format within which to look for features.  Try `POLYGON((-72.2021484375 38.58896696823242,-59.1943359375 38.58896696823242,-59.1943359375 28.11801628757283,-72.2021484375 28.11801628757283,-72.2021484375 38.58896696823242))`").DataType("string")).
+									Param(service.QueryParameter("abstracts", "If set `true` then abstracts are sent, otherwise abstracts are not sent.  Default is not to send").DataType("string")).
 									ReturnsError(400, "Unable to handle request", nil).
 									Operation("WKTFeaturesJRSO"))
 
@@ -128,6 +129,7 @@ func New() *restful.WebService {
 // WKTFeatures get features for JRSO data using WKT Polygon string
 func WKTFeaturesJRSO(request *restful.Request, response *restful.Response) {
 	wktstring := request.QueryParameter("geowithin")
+	abstracts := request.QueryParameter("abstracts")
 
 	session, err := connectors.GetMongoCon()
 	if err != nil {
@@ -136,7 +138,7 @@ func WKTFeaturesJRSO(request *restful.Request, response *restful.Response) {
 	defer session.Close()
 
 	// session.SetMode(mgo.Monotonic, true)
-	c := session.DB("expedire").C("featuresGeoJSON")
+	c := session.DB("expedire").C("featuresGeoJSON") // featuresGeoJSON  and featuresAbsGeoJSONM
 	var results []structs.ExpeditionGeoJSON
 
 	parsedwkt, err := WKTPolygonToFloatArray(wktstring)
@@ -161,10 +163,9 @@ func WKTFeaturesJRSO(request *restful.Request, response *restful.Response) {
 		response.WriteErrorString(http.StatusBadRequest, err.Error())
 		return
 	}
-    
-    
-    // check to see if we got anything, if not return 204, success, no content
-    if len(results) == 0 {
+
+	// check to see if we got anything, if not return 204, success, no content
+	if len(results) == 0 {
 		log.Printf("Everything OK, no conent\n")
 		response.AddHeader("Content-Type", "text/plain")
 		response.WriteErrorString(http.StatusNoContent, "No features were found in the specified POLYGON") // put in some JSON "empty" here?
@@ -186,9 +187,9 @@ func WKTFeaturesJRSO(request *restful.Request, response *restful.Response) {
 
 		// Set prop entries
 		// TODO..  swith on if item.Hole exist.....
-		props := map[string]interface{}{"description": item.Expedition}  //  "popupContent": item.Expedition,
-			// "URL": fmt.Sprintf("<a target='_blank' href='http://opencoredata.org/id/expedition/%s/%s/%s'>%s_%s%s</a>",
-			// 	item.Expedition, item.Site, item.Hole, item.Expedition, item.Site, item.Hole)}
+		props := map[string]interface{}{"description": item.Expedition} //  "popupContent": item.Expedition,
+		// "URL": fmt.Sprintf("<a target='_blank' href='http://opencoredata.org/id/expedition/%s/%s/%s'>%s_%s%s</a>",
+		// 	item.Expedition, item.Site, item.Hole, item.Expedition, item.Site, item.Hole)}
 		if item.Uri != "" {
 			props["URI"] = item.Uri
 		}
@@ -258,6 +259,11 @@ func WKTFeaturesJRSO(request *restful.Request, response *restful.Response) {
 		if item.Prcoeedingreport != "" {
 			props["Prcoeeding report"] = item.Prcoeedingreport
 		}
+		if abstracts == "true" {
+			if item.Abstract != "" {
+				props["Abstracts"] = item.Abstract
+			}
+		}
 
 		newp := gj.NewMultiPoint(c)
 		f = gj.NewFeature(newp, props, nil)
@@ -281,9 +287,7 @@ func WKTPolygonToFloatArray(wkt string) ([][][]float64, error) {
 
 	f := [][][]float64{}
 	c := [][]float64{}
-    
-    
-    
+
 	for _, item := range wktarray {
 		coordSet := strings.Split(item, " ")
 		// TODO..  catch these errors..  this is bad form!  The whole function needs an error
@@ -385,7 +389,7 @@ func CSDCOFeatures(request *restful.Request, response *restful.Response) {
 		// schemameta := GetFeatures(item.Expedition, "")
 
 		// Set prop entries
-		props := map[string]interface{}{"project": item.Project,"URI": fmt.Sprintf("http://opencoredata.org/collections/csdco/%s",item.HoleID)}
+		props := map[string]interface{}{"project": item.Project, "URI": fmt.Sprintf("http://opencoredata.org/collections/csdco/%s", item.HoleID)}
 		//for key, ds := range schemameta {
 		//	props[fmt.Sprintf("HREF_%d", key)] = ds.Uri
 		//}
@@ -448,7 +452,7 @@ func AllExpeditions(request *restful.Request, response *restful.Response) {
 			// schemameta := GetFeatures(item.Expedition, "")
 
 			// Set prop entries
-			props := map[string]interface{}{"popupContent": item.URI, "URI":  item.URI}
+			props := map[string]interface{}{"popupContent": item.URI, "URI": item.URI}
 			// "end_age":"0.0", "begin_age":fmt.Sprintf("%.2f", begin_age), "feature_type": "gpml:UnclassifiedFeature",
 			//for key, ds := range schemameta {
 			//	props[fmt.Sprintf("HREF_%d", key)] = ds.Uri
@@ -534,7 +538,7 @@ func Expeditions(request *restful.Request, response *restful.Response) {
 			// }
 
 			// Set prop entries
-			props := map[string]interface{}{"expedition": item.Expedition,"URL": fmt.Sprintf("http://opencoredata.org/id/expedition/%s/%s",item.Expedition, item.Site)}
+			props := map[string]interface{}{"expedition": item.Expedition, "URL": fmt.Sprintf("http://opencoredata.org/id/expedition/%s/%s", item.Expedition, item.Site)}
 			for key, ds := range datasets {
 				props[fmt.Sprintf("dataset%d", key)] = ds.Name
 			}
@@ -774,7 +778,7 @@ func DatasetCall(request *restful.Request, response *restful.Response) {
 		long, err := strconv.ParseFloat(item.Spatial.Geo.Longitude, 64)
 		if err != nil {
 			//panic(err)
-		log.Printf("Error event: %v \n", err)
+			log.Printf("Error event: %v \n", err)
 		}
 		p := gj.NewPoint(gj.Coordinate{gj.Coord(long), gj.Coord(lat)})
 		props := map[string]interface{}{"Site": item.Opencoresite}

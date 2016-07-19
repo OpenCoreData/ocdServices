@@ -36,7 +36,17 @@ func New() *restful.WebService {
     service.Route(service.GET("/keyword/{keyword}").To(GetFilesByKeyword).
         Doc("get array of documents based on a keyword search").
         Param(service.PathParameter("keyword", "keyword to search on").DataType("string")).
-        Operation("Get Files By Keyword"))	
+        Operation("Get File ID set by Keyword"))	
+
+	//  service.Route(service.GET("/collection/measurement/{measurement}/jrso/lsh/{leg}/{site}/{hole}").To(GetByMesJRSO).
+        // Doc("get array of documents based on a measurement in JRSO data filtered by LSH (optional)").
+        // Param(service.PathParameter("keyword", "keyword to search on").DataType("string")).
+        // Operation("Get File ID set by measurment and expedition information"))	
+
+			//  service.Route(service.GET("/collection/measurement/{measurement}/csdco/project/{project}").To(GetByMesCSDCO).
+        // Doc("get array of documents based on a measurement in JRSO data filtered by LSH (optional)").
+        // Param(service.PathParameter("keyword", "keyword to search on").DataType("string")).
+        // Operation("Get File ID set by measurment and expedition information"))
     
     return service
 }
@@ -62,7 +72,7 @@ func GetFilesByKeyword(request *restful.Request, response *restful.Response) {
 	err = c.Find(bson.M{"$text":bson.M{"$search": keyword} }).All(&results)
 	
 	if err != nil {
-		log.Printf("Error calling for ShowExpeditions: %v", err)
+		log.Printf("Error calling for GetFilesByKeyword: %v", err)
 		results = nil
 	}
     

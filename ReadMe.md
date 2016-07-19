@@ -10,6 +10,9 @@ These services are following both the REST and OpenSearch API design patterns.
 Need to set the ENV for username and password
 
 ##LD configs for C based Oracle driver
+
+* replaced by export PKG_CONFIG_PATH=/Users/dfils/src/oracle/
+
 ###Mac OS x
 * export CGO_CFLAGS=-I/Users/dfils/src/oracle/instantclient_11_2/sdk/include
 * export CGO_LDFLAGS="-L/Users/dfils/src/oracle/instantclient_11_2 -lclntsh"

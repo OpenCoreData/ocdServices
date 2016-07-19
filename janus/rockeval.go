@@ -4,33 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"strings"
 	"text/template"
-    "strings"
+
 	"github.com/emicklei/go-restful"
 	"opencoredata.org/ocdServices/connectors"
 )
-
-func New() *restful.WebService {
-	service := new(restful.WebService)
-	service.
-		Path("/api/v1/janus").
-		Doc("Access Open Core Data Documents").
-		Consumes("application/x-www-form-urlencoded").
-		Produces("text/plain")
-
-	service.Route(service.GET("/rockeval").To(RockEval).
-		Doc("Rock Eval").
-		Param(service.QueryParameter("leg", "Leg of expedition")).
-		Param(service.QueryParameter("site", "Site of expedition")).
-		Param(service.QueryParameter("hole", "Hole of expedition")).
-		Param(service.QueryParameter("core", "Core")).
-		Param(service.QueryParameter("section", "Core section")).
-		Param(service.QueryParameter("depthtop", "Depth top")).
-		Param(service.QueryParameter("depthbottom", "Depth bottom")).
-		Operation("Rock evaluation query"))
-
-	return service
-}
 
 // RockEval function for evaluate janus calls
 func RockEval(request *restful.Request, response *restful.Response) {
@@ -91,15 +70,18 @@ func RockEval(request *restful.Request, response *restful.Response) {
 	result := make([]string, len(cols))
 
 	dest := make([]interface{}, len(cols)) // A temporary interface{} slice
-	for i, _ := range rawResult {
+	for i := range rawResult {
 		dest[i] = &rawResult[i] // Put pointers to each string in the interface slice
 	}
 
 	var buffer bytes.Buffer
-	
+
 	log.Printf("%v", cols)
 
+	log.Printf("%v", rows)
+
 	for rows.Next() {
+
 		err = rows.Scan(dest...)
 		if err != nil {
 			fmt.Println("Failed to scan row", err)
