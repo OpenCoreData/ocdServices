@@ -14,8 +14,8 @@ import (
 	gj "github.com/kpawlik/geojson"
 	"github.com/mb0/wkt"
 	"gopkg.in/mgo.v2/bson"
-	"opencoredata.org/ocdCommons/structs"
 	"opencoredata.org/ocdServices/connectors"
+	"opencoredata.org/ocdServices/structs"
 	"opencoredata.org/ocdServices/utilities"
 )
 
