@@ -1,6 +1,8 @@
 package spatial
 
 import (
+	"encoding/json"
+
 	"github.com/emicklei/go-restful"
 	"gopkg.in/mgo.v2"
 	// "encoding/json"
@@ -123,10 +125,39 @@ func New() *restful.WebService {
 									ReturnsError(400, "Unable to handle request", nil).
 									Operation("WKTFeaturesJRSO"))
 
+	service.Route(service.GET("/search/jrso/abstract").To(GetAbstract). // Get abstract based on ID/URI  like  "URI": "http://opencoredata.org/id/expedition/167/1018/B"
+										Doc("Get abstract based on ID/URI").
+										Param(service.QueryParameter("uri", "Get abstracts associated with the URI such as: http://opencoredata.org/id/expedition/167/1018/B").DataType("string")).
+										ReturnsError(400, "Unable to handle request", nil).
+										Operation("TBD"))
+
 	return service
 }
 
-// WKTFeatures get features for JRSO data using WKT Polygon string
+// GetAbstract fuunction to pull abstract based on URI request
+func GetAbstract(request *restful.Request, response *restful.Response) {
+	uri := request.QueryParameter("uri")
+
+	session, err := connectors.GetMongoCon()
+	if err != nil {
+		log.Println(err)
+	}
+	defer session.Close()
+
+	// session.SetMode(mgo.Monotonic, true)
+	c := session.DB("expedire").C("featuresAbsGeoJSON") // featuresGeoJSON  and featuresAbsGeoJSON
+	var result structs.ExpeditionGeoJSON
+
+	err = c.Find(bson.M{"uri": uri}).Select(bson.M{"uri": 1, "abstract": 1}).One(&result) // pull only ONE not ALL .All(&results)
+	if err != nil {
+		log.Printf("Error calling for abstract by URI %v", err)
+	}
+
+	jsontext, _ := json.MarshalIndent(result, "", " ")
+	response.Write([]byte(jsontext))
+}
+
+// WKTFeaturesJRSO get features for JRSO data using WKT Polygon string
 func WKTFeaturesJRSO(request *restful.Request, response *restful.Response) {
 	wktstring := request.QueryParameter("geowithin")
 	abstracts := request.QueryParameter("abstracts")
@@ -138,7 +169,7 @@ func WKTFeaturesJRSO(request *restful.Request, response *restful.Response) {
 	defer session.Close()
 
 	// session.SetMode(mgo.Monotonic, true)
-	c := session.DB("expedire").C("featuresGeoJSON") // featuresGeoJSON  and featuresAbsGeoJSONM
+	c := session.DB("expedire").C("featuresAbsGeoJSON") // featuresGeoJSON  and featuresAbsGeoJSON
 	var results []structs.ExpeditionGeoJSON
 
 	parsedwkt, err := WKTPolygonToFloatArray(wktstring)

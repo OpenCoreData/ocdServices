@@ -8,6 +8,7 @@ These services are following both the REST and OpenSearch API design patterns.
 
 ###Notes
 Need to set the ENV for username and password
+Use the docker --env-file option to pass along connection information
 
 ##LD configs for C based Oracle driver
 
