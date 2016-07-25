@@ -212,9 +212,9 @@ func WKTFeaturesJRSO(request *restful.Request, response *restful.Response) {
 	// feature with propertises
 	for _, item := range results {
 
-		c := gj.Coordinates{}
+		// c := gj.Coordinates{}
 		cd := gj.Coordinate{gj.Coord(item.Coordinates[0]), gj.Coord(item.Coordinates[1])}
-		c = append(c, cd)
+		// c = append(c, cd)
 
 		// Set prop entries
 		// TODO..  swith on if item.Hole exist.....
@@ -296,7 +296,8 @@ func WKTFeaturesJRSO(request *restful.Request, response *restful.Response) {
 			}
 		}
 
-		newp := gj.NewMultiPoint(c)
+		// newp := gj.NewMultiPoint(c)
+		newp := gj.NewPoint(cd)
 		f = gj.NewFeature(newp, props, nil)
 		fa = append(fa, f)
 	}
@@ -407,12 +408,12 @@ func CSDCOFeatures(request *restful.Request, response *restful.Response) {
 	// feature with propertises
 	for _, item := range results {
 
-		c := gj.Coordinates{}
+		// c := gj.Coordinates{}
 		// TODO..  catch these errors..  this is bad form!
 		x, _ := strconv.ParseFloat(item.Long, 64)
 		y, _ := strconv.ParseFloat(item.Lat, 64)
 		cd := gj.Coordinate{gj.Coord(x), gj.Coord(y)}
-		c = append(c, cd)
+		// c = append(c, cd)
 
 		// Turned this off and the associated for loop below..   really this could be a MongoDB aggregation on the server
 		// to enable this to be far faster.
@@ -425,7 +426,8 @@ func CSDCOFeatures(request *restful.Request, response *restful.Response) {
 		//	props[fmt.Sprintf("HREF_%d", key)] = ds.Uri
 		//}
 
-		newp := gj.NewMultiPoint(c)
+		// newp := gj.NewMultiPoint(c)
+		newp := gj.NewPoint(cd)
 		f = gj.NewFeature(newp, props, nil)
 		fa = append(fa, f)
 	}
