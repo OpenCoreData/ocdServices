@@ -7,7 +7,7 @@ FROM golang:1.5
 # Copy the local package files to the container's workspace.
 ADD . /go/src/opencoredata.org/ocdServices
 #ADD ./ocdCommons /go/src/opencoredata.org/ocdCommons
-ADD ./oracle /oracle
+ADD ./buildDependencies /oracle
 #ADD https://codeload.github.com/OpenCoreData/ocdCommons/zip/master  /
 
 # Uncompress ocdCommons

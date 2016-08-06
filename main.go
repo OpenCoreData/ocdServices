@@ -16,14 +16,13 @@ import (
 
 	"opencoredata.org/ocdServices/documents"
 	"opencoredata.org/ocdServices/expeditions"
+	"opencoredata.org/ocdServices/utilities"
 	// ocdGraphql "opencoredata.org/ocdServices/graphql"
 	"opencoredata.org/ocdServices/agemodel"
+	"opencoredata.org/ocdServices/janus"
 	"opencoredata.org/ocdServices/neptune"
 	"opencoredata.org/ocdServices/spatial"
-	"opencoredata.org/ocdServices/janus"
-
 )
-
 
 func init() {
 	ora.Register(nil)
@@ -59,6 +58,9 @@ func main() {
 
 	// Add container filter to respond to OPTIONS
 	wsContainer.Filter(wsContainer.OPTIONSFilter)
+
+	// Add logging filter
+	wsContainer.Filter(utilities.NCSACommonLogFormatLogger())
 
 	// Add the services
 	wsContainer.Add(neptune.New())
