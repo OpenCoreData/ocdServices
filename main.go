@@ -84,7 +84,7 @@ func main() {
 
 	// Print out the ports in use and start the services
 	log.Printf("Services on localhost:6789")
-	log.Printf("Serving graphql and HTML on localhost:7890/graphql")
+	// log.Printf("Serving graphql and HTML on localhost:7890/graphql")
 
 	server := &http.Server{Addr: ":6789", Handler: wsContainer}
 	server.ListenAndServe()

@@ -23,5 +23,9 @@ func New() *restful.WebService {
 		Param(service.QueryParameter("depthbottom", "Depth bottom")).
 		Operation("Rock evaluation query"))
 
+	service.Route(service.GET("/testng").To(TestNG).
+		Doc("Test service").
+		Operation("test evaluation query"))
+
 	return service
 }

@@ -14,6 +14,7 @@ import (
 // RockEval function for evaluate janus calls
 func RockEval(request *restful.Request, response *restful.Response) {
 
+	log.Println("Get conection")
 	// get the Oracle connection
 	conn, err := connectors.GetJanusCon()
 	if err != nil {
@@ -100,6 +101,8 @@ func RockEval(request *restful.Request, response *restful.Response) {
 		buffer.WriteString("\n")
 
 	}
+
+	log.Println("write response")
 
 	response.Write([]byte(buffer.String()))
 
