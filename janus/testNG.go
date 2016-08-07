@@ -10,7 +10,7 @@ import (
 	"opencoredata.org/ocdServices/connectors"
 )
 
-type AgeModel struct {
+type AgeModel struct { // make an []struct?
 	Leg                   int64          `json:"Leg" dc_description:"Number identifying the cruise."`
 	Site                  int64          `json:"Site" dc_description:"Number identifying the site from which the core was retrieved. A site is the position of a beacon around which holes are drilled."`
 	Hole                  string         `json:"Hole" dc_description:"Letter identifying the hole at a site from which a core was retrieved or data was collected."`
@@ -38,8 +38,10 @@ func TestNG(request *restful.Request, response *restful.Response) {
 }
 
 // TestFunc is a test function for better formatting style....
-func TestFunc(db *sql.DB) (*AgeModel, error) {
+// Keep as a called function to allow use in other code (like ocdBulk) and to future use like gRPC
+func TestFunc(db *sql.DB) (*[]AgeModel, error) {
 	var r AgeModel
+	rset := []AgeModel{}
 
 	rows, err := db.Query(`SELECT * FROM ocd_age_model WHERE leg = 138 AND site = 844 AND hole = 'B'`)
 	if err != nil {
@@ -52,7 +54,7 @@ func TestFunc(db *sql.DB) (*AgeModel, error) {
 		if err != nil {
 			log.Print(err)
 		}
-		log.Print(r)
+		rset = append(rset, r)
 	}
 
 	// if err != nil {
@@ -60,5 +62,7 @@ func TestFunc(db *sql.DB) (*AgeModel, error) {
 	// 	return nil, nil //errors.Wrap(err, "failed to select t1")  // firgure out this error issue
 	// }
 
-	return &r, nil
+	return &rset, nil
 }
+
+// write a toCSV function that can later be placed in the utilities section
