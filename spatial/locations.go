@@ -124,6 +124,10 @@ func New() *restful.WebService {
 									Param(service.QueryParameter("abstracts", "If set `true` then abstracts are sent, otherwise abstracts are not sent.  Default is not to send").DataType("string")).
 									ReturnsError(400, "Unable to handle request", nil).
 									Operation("WKTFeaturesJRSO"))
+	// Consumes("application/vnd.flyovercountry.v1+json")  // Is this a good approach?
+	// “application/vnd.laccore.flyovercountry+json; version=1”
+	// “application/json; profile=vnd.laccore.flyovercountry version=1”
+	// "application/json;vnd.laccore.flyovercountry+v1"
 
 	service.Route(service.GET("/search/jrso/abstract").To(GetAbstract). // Get abstract based on ID/URI  like  "URI": "http://opencoredata.org/id/expedition/167/1018/B"
 										Doc("Get abstract based on ID/URI").
@@ -137,6 +141,10 @@ func New() *restful.WebService {
 // GetAbstract fuunction to pull abstract based on URI request
 func GetAbstract(request *restful.Request, response *restful.Response) {
 	uri := request.QueryParameter("uri")
+
+	// Playing with versioning via headers
+	// version := request.HeaderParameter("version")
+	// accpet := request.HeaderParameter("Accepts")
 
 	session, err := connectors.GetMongoCon()
 	if err != nil {
