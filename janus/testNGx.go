@@ -62,25 +62,19 @@ func TestFuncx(db *sqlx.DB, sqlstring string) (string, error) {
 	return csvdata, nil
 }
 
-// rows, err := db.Queryx("SELECT * FROM place")
-// for rows.Next() {
-//     // cols is an []interface{} of all of the column results
-//     cols, err := rows.SliceScan()
-// }
-
 func GetData(db *sqlx.DB, sqlstring string, destold interface{}) {
 	// arr := reflect.ValueOf(dest).Elem()
 	// v := reflect.New(reflect.TypeOf(dest).Elem().Elem())
 
 	db.MapperFunc(strings.ToUpper)
 
-	rows, err := db.Queryx(sqlstring)
-	if err != nil {
-		log.Printf(`Error 1 with: %s`, err)
-	}
+	// rows, err := db.Queryx(sqlstring)
+	// if err != nil {
+	// 	log.Printf(`Error 1 with: %s`, err)
+	// }
 
 	places := []AgeModelx{}
-	err = db.Select(&places, sqlstring)
+	err := db.Select(&places, sqlstring)
 	if err != nil {
 		log.Printf(`Error 2 with: %s`, err)
 		return
@@ -88,17 +82,17 @@ func GetData(db *sqlx.DB, sqlstring string, destold interface{}) {
 	log.Print("getdata places value")
 	log.Print(places)
 
-	var dest []interface{}
-	for rows.Next() {
-		// cols is an []interface{} of all of the column results
-		dest, err = rows.SliceScan()
-		if err != nil {
-			log.Printf(`Error in row Next: %s`, err)
-		}
-	}
+	// var dest []interface{}
+	// for rows.Next() {
+	// 	// cols is an []interface{} of all of the column results
+	// 	dest, err = rows.SliceScan()
+	// 	if err != nil {
+	// 		log.Printf(`Error in row Next: %s`, err)
+	// 	}
+	// }
 
-	log.Print("getdata dest value")
-	log.Print(dest)
+	// log.Print("getdata dest value")
+	// log.Print(dest)
 
 	// if err == nil {
 	// 	if err = rows.StructScan(v.Interface()); err == nil {
