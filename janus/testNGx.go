@@ -24,9 +24,7 @@ type AgeModelx struct { // make an []struct?
 
 // TestNG function for evaluate janus calls
 func TestNGx(request *restful.Request, response *restful.Response) {
-
-	// get the Oracle connection
-	conn, err := connectors.GetJanusConX()
+	conn, err := connectors.GetJanusConX() // get the Oracle connection
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,14 +32,20 @@ func TestNGx(request *restful.Request, response *restful.Response) {
 
 	sqlstring := `SELECT * FROM ocd_age_model WHERE leg = 138 AND site = 844 AND hole = 'B'`
 
-	// Test 1  rows to CSV
+	// Test 1  rows to CSV  WORKS for CSV string needs..  (no structs needed!)
 	output2, _ := TestFuncx(conn, sqlstring)
 
-	// TEST 2  rows to struct to X
+	// TEST 2  rows to struct to X  BEST so far with structs for typing!
 	data := []AgeModelx{}
-	GetData(conn, sqlstring, &data)
-	log.Print("testng data value")
+	data, _ = GetData(conn, sqlstring)
+	log.Print("--------------------data -----------------------")
 	log.Println(data)
+
+	// TEST 3  this now works and might be "simpler" than TEST 2 ...  need to review that.
+	data2 := &[]AgeModelx{}
+	GetDatav2(conn, sqlstring, &data2)
+	log.Print("--------------------data 2-----------------------")
+	log.Print(data2)
 
 	response.Header().Set("Content-Type", "text/csv") // setting the content type header to text/csv
 	response.Header().Set("Content-Disposition", "attachment;filename=ocdDataDownload.csv")
@@ -62,41 +66,24 @@ func TestFuncx(db *sqlx.DB, sqlstring string) (string, error) {
 	return csvdata, nil
 }
 
-func GetData(db *sqlx.DB, sqlstring string, destold interface{}) {
-	// arr := reflect.ValueOf(dest).Elem()
-	// v := reflect.New(reflect.TypeOf(dest).Elem().Elem())
-
+// GetDatav2 is a text function
+func GetDatav2(db *sqlx.DB, sqlstring string, places **[]AgeModelx) {
 	db.MapperFunc(strings.ToUpper)
+	err := db.Select(*places, sqlstring)
+	if err != nil {
+		log.Printf(`Error v2 with: %s`, err)
+	}
+}
 
-	// rows, err := db.Queryx(sqlstring)
-	// if err != nil {
-	// 	log.Printf(`Error 1 with: %s`, err)
-	// }
-
+// GetData is a text function
+func GetData(db *sqlx.DB, sqlstring string) ([]AgeModelx, error) {
+	db.MapperFunc(strings.ToUpper)
 	places := []AgeModelx{}
 	err := db.Select(&places, sqlstring)
 	if err != nil {
 		log.Printf(`Error 2 with: %s`, err)
-		return
+		return nil, nil
 	}
-	log.Print("getdata places value")
-	log.Print(places)
 
-	// var dest []interface{}
-	// for rows.Next() {
-	// 	// cols is an []interface{} of all of the column results
-	// 	dest, err = rows.SliceScan()
-	// 	if err != nil {
-	// 		log.Printf(`Error in row Next: %s`, err)
-	// 	}
-	// }
-
-	// log.Print("getdata dest value")
-	// log.Print(dest)
-
-	// if err == nil {
-	// 	if err = rows.StructScan(v.Interface()); err == nil {
-	// 		arr.Set(reflect.Append(arr, v.Elem()))
-	// 	}
-	// }
+	return places, nil
 }
