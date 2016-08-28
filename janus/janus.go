@@ -31,5 +31,9 @@ func New() *restful.WebService {
 		Doc("Test service X").
 		Operation("test X evaluation query"))
 
+	service.Route(service.GET("/agemodel").To(GetAgeModles).
+		Doc("Test service GetAgeModles").
+		Operation("GetAgeModles evaluation query"))
+
 	return service
 }
