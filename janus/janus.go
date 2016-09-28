@@ -13,7 +13,7 @@ func New() *restful.WebService {
 		Produces("text/plain")
 
 	service.Route(service.GET("/rockeval").To(RockEval).
-		Doc("Rock Eval").
+		Doc("Rock evaluation").
 		Param(service.QueryParameter("leg", "Leg of expedition")).
 		Param(service.QueryParameter("site", "Site of expedition")).
 		Param(service.QueryParameter("hole", "Hole of expedition")).
@@ -23,17 +23,23 @@ func New() *restful.WebService {
 		Param(service.QueryParameter("depthbottom", "Depth bottom")).
 		Operation("Rock evaluation query"))
 
-	service.Route(service.GET("/testng").To(TestNG).
-		Doc("Test service").
-		Operation("test evaluation query"))
-
-	service.Route(service.GET("/testngx").To(TestNGx).
-		Doc("Test service X").
-		Operation("test X evaluation query"))
-
-	service.Route(service.GET("/agemodel").To(GetAgeModles).
+	service.Route(service.GET("/agemodel").To(GetAgeModle).
 		Doc("Test service GetAgeModles").
+		Param(service.QueryParameter("leg", "Leg of expedition")).
+		Param(service.QueryParameter("site", "Site of expedition")).
+		Param(service.QueryParameter("hole", "Hole of expedition")).
 		Operation("GetAgeModles evaluation query"))
+
+	service.Route(service.GET("/ocd_age_model_sql").To(OCDAgeModelSQL).
+		Doc("Janus: Get age model data").
+		Param(service.QueryParameter("leg", "Leg of expedition")).
+		Param(service.QueryParameter("site", "Site of expedition")).
+		Param(service.QueryParameter("hole", "Hole of expedition")).
+		Param(service.QueryParameter("core", "Core value from hole")).
+		Param(service.QueryParameter("section", "Section of core")).
+		Param(service.QueryParameter("depthtop", "Top Depth (mbsf)")).
+		Param(service.QueryParameter("depthbottom", "Bottom Depth (mbsf)")).
+		Operation("OCD_age_model_sql"))
 
 	return service
 }
