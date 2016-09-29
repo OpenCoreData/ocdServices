@@ -70,4 +70,4 @@ CMD ["/go/src/opencoredata.org/ocdServices/ocdServices"]
 
 # Document that the service listens on this port
 # container needs to talk to database container
-EXPOSE 16789
+EXPOSE 6789
