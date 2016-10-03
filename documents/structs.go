@@ -46,21 +46,21 @@ type Columns struct {
 
 // schema.org Dataset metadata structs
 type SchemaOrgMetadata struct {
-	Context             []interface{} `json:"@context"`
-	Type                string        `json:"@type"`
-	Author              Author        `json:"author"`
-	Description         string        `json:"description"`
-	Distribution        Distribution  `json:"distribution"`
-	GlviewDataset       string        `json:"glview:dataset"`
-	GlviewKeywords      string        `json:"glview:keywords"`
-	OpenCoreLeg         string        `json:"opencore:leg"`
-	OpenCoreSite        string        `json:"opencore:site"`
-	OpenCoreHole        string        `json:"opencore:hole"`
-	OpenCoreMeasurement string        `json:"opencore:measurement"`
-	Keywords            string        `json:"keywords"`
-	Name                string        `json:"name"`
-	Spatial             Spatial       `json:"spatial"`
-	URL                 string        `json:"url"`
+	Context             string       `json:"@context"` // was []interface{}
+	Type                string       `json:"@type"`
+	Author              Author       `json:"author"`
+	Description         string       `json:"description"`
+	Distribution        Distribution `json:"distribution"`
+	GlviewDataset       string       `json:"glview:dataset"`
+	GlviewKeywords      string       `json:"glview:keywords"`
+	OpenCoreLeg         string       `json:"opencore:leg"`
+	OpenCoreSite        string       `json:"opencore:site"`
+	OpenCoreHole        string       `json:"opencore:hole"`
+	OpenCoreMeasurement string       `json:"opencore:measurement"`
+	Keywords            string       `json:"keywords"`
+	Name                string       `json:"name"`
+	Spatial             Spatial      `json:"spatial"`
+	URL                 string       `json:"url"`
 }
 
 type Author struct {

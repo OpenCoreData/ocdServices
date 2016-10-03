@@ -174,6 +174,9 @@ func GetFileByUUID(request *restful.Request, response *restful.Response) {
 		if err != nil {
 			log.Printf("URL lookup error: %v", err)
 		}
+		// context setting hack
+		// result.Context = ` "opencore": "http://opencoredata.org/voc/1/", "glview": "http://geolink.org/view/1/", "schema": "http://schema.org/"`
+		result.Context = "http://schema.org"
 		jsonldtext, _ := json.MarshalIndent(result, "", " ") // results as embeddale JSON-LD
 		if err != nil {
 			log.Printf("Error calling in GetFileBuyUUID : %v ", err)
@@ -198,6 +201,9 @@ func GetFileByUUID(request *restful.Request, response *restful.Response) {
 		if err != nil {
 			log.Printf("URL lookup error: %v", err)
 		}
+		// result.Context = ` "opencore": "http://opencoredata.org/voc/1/", "glview": "http://geolink.org/view/1/", "schema": "http://schema.org/"`
+		// needs to be:     "@context": ["http://www.w3.org/ns/csvw", {"@language": "en"}],
+		result.Context = "http://www.w3.org/ns/csvw"
 		jsonldtext, _ := json.MarshalIndent(result, "", " ") // results as embeddale CSVW JSON-LD
 		if err != nil {
 			log.Printf("Error calling in GetFileBuyUUID : %v ", err)
