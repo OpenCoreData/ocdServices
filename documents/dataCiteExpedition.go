@@ -8,7 +8,7 @@ type DataCiteExp struct {
 	CreatorName     string   // Open Core Data
 	CreatorDOI      string   // re3data DOI
 	Title           string   // Expedition XXX on Joides Resoultion
-	Abstract        string   // * Deep-AUV Magnetic and Seismic Study of the Hawaiian Jurassic Crust, Leg 1
+	Abstract        string   // * abstract here...
 	DateCollected   string   // ** Really a data of a specific format 2011-11-05/2011-12-17
 	ContributorName string   // Joides Resolution Science Office || Continental Scientific Drilling Corrdinating Office
 	RelatedDOIs     []string // 1 or more related DOI's
@@ -18,6 +18,28 @@ type DataCiteExp struct {
 	Version         string   // 1, 2, 3, etc
 	PubYear         string   // 2016
 }
+
+// From IEDA notes..  these are fields of interest for DC 4.0
+// DataCiteProperty
+// identifier
+// creators (1)
+// titles (1)
+// publisher
+// publicationYear
+// resourceType
+// subjects (0..1)
+// contributors (0..1)
+// dates (0..1)
+// language
+// alternateIdentifiers (0..1)
+// relatedIdentifiers (0..1)
+// sizes (0..1)
+// formats (0..1)
+// version (0..1)
+// RightsList (0..1)
+// descriptions (0..1)
+// geoLocations (0..1)
+// fundingReferences (0..1)
 
 // * need a short abstract or is there a length?
 // ** do I really have this..  I might in some of the "trivia" files
