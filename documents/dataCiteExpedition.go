@@ -1,13 +1,15 @@
 package documents
 
+import restful "github.com/emicklei/go-restful"
+
 // DataCiteExp for the values needed for the DataCite entry for an expeditions
-type DataCiteExp struct {
+type DataCite struct {
 	ExpDOI          string   // Is this the ID of the expedition or something else
 	ExpURI          string   // something like http://data.rvdata.us/id/cruise/TN272 for R2R
 	ResourceType    string   // Field_expedition
 	CreatorName     string   // Open Core Data
-	CreatorDOI      string   // re3data DOI
-	Title           string   // Expedition XXX on Joides Resoultion
+	CreatorDOI      string   // re3data DOI  static   10.17616/R37936
+	Title           string   // Expedition XXX on Joides Resoultion or CSDCO
 	Abstract        string   // * abstract here...
 	DateCollected   string   // ** Really a data of a specific format 2011-11-05/2011-12-17
 	ContributorName string   // Joides Resolution Science Office || Continental Scientific Drilling Corrdinating Office
@@ -134,3 +136,15 @@ const XMLtemplate = `
   <publicationYear>{{.Year}}</publicationYear>
 </resource>
 `
+
+func CSDCODatacite(request *restful.Request, response *restful.Response) {
+
+	// get the data into the struct
+
+	//build the XMLtemplate
+
+	// return the XML here
+	resultsSet := "xmlstring here"
+	response.Write([]byte(resultsSet))
+
+}

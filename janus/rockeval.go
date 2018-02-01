@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"text/template"
 
@@ -14,11 +15,11 @@ import (
 // RockEval function for evaluate janus calls
 func RockEval(request *restful.Request, response *restful.Response) {
 
-	log.Println("Get conection")
 	// get the Oracle connection
 	conn, err := connectors.GetJanusCon()
 	if err != nil {
-		panic(err)
+		http.Error(response, err.Error(), 500)
+		return
 	}
 	defer conn.Close()
 
@@ -57,7 +58,8 @@ func RockEval(request *restful.Request, response *restful.Response) {
 	rows, err := conn.Query(string(buff.Bytes()))
 	if err != nil {
 		log.Printf(`Error with "%s": %s :%v`, string(buff.Bytes()), err, rows)
-		// return
+		http.Error(response, err.Error(), 500)
+		return
 	}
 
 	cols, err := rows.Columns()

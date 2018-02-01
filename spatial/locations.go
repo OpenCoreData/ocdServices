@@ -107,6 +107,11 @@ func New() *restful.WebService {
 		Doc("get all continental drill sites").
 		Operation("CSDCOFeatures"))
 
+	service.Route(service.GET("/continental/{proj}").To(CSDCOFeaturesByProj).
+		Doc("get all continental drill sites by project id").
+		Param(service.PathParameter("proj", "Information about a CSDCO project").DataType("string")).
+		Operation("CSDCOFeaturesByProj"))
+
 	service.Route(service.GET("/expedition/{leg}").To(Expeditions).
 		Doc("get expedition by leg").
 		Param(service.PathParameter("leg", "Leg in format like 123 or 312U").DataType("string")).
@@ -387,6 +392,68 @@ func WKTPolygontoGeoJSON(wkt string) string {
 	fmt.Println(gjstr)
 
 	return gjstr
+}
+
+func CSDCOFeaturesByProj(request *restful.Request, response *restful.Response) {
+	log.Println("In the CSDCOFeatureByProj Call")
+	session, err := connectors.GetMongoCon()
+	if err != nil {
+		//panic(err)
+		log.Printf("Error event: %v \n", err)
+	}
+	defer session.Close()
+
+	// session.SetMode(mgo.Monotonic, true)
+	c := session.DB("test").C("csdco")
+	var results []CSDCO
+	projRequest := request.PathParameter("proj")
+	// c.Find(bson.M{"_id": bson.ObjectIdHex(p.ByName("id"))}).Select(bson.M{"races": bson.M{"$elemMatch": bson.M{"_id": bson.ObjectIdHex(p.ByName("raceId"))}}}).One(&result)
+	err = c.Find(bson.M{"project": projRequest}).Select(bson.M{"lat": 1, "long": 1, "holeid": 1, "project": 1}).All(&results) // pull only Lat Long Project and HoleID
+	if err != nil {
+		log.Printf("Error calling for all expeditions: %v", err)
+	}
+
+	// Build the geojson section
+	var (
+		// fc *gj.FeatureCollection
+		f  *gj.Feature
+		fa []*gj.Feature
+	)
+
+	// feature with propertises
+	for _, item := range results {
+
+		// c := gj.Coordinates{}
+		// TODO..  catch these errors..  this is bad form!
+		x, _ := strconv.ParseFloat(item.Long, 64)
+		y, _ := strconv.ParseFloat(item.Lat, 64)
+		cd := gj.Coordinate{gj.Coord(x), gj.Coord(y)}
+		// c = append(c, cd)
+
+		// Turned this off and the associated for loop below..   really this could be a MongoDB aggregation on the server
+		// to enable this to be far faster.
+		// Grab the schema from an expedition here
+		// schemameta := GetFeatures(item.Expedition, "")
+
+		// Set prop entries
+		props := map[string]interface{}{"project": item.Project, "URI": fmt.Sprintf("http://opencoredata.org/collections/csdco/%s", item.HoleID)}
+		//for key, ds := range schemameta {
+		//	props[fmt.Sprintf("HREF_%d", key)] = ds.Uri
+		//}
+
+		// newp := gj.NewMultiPoint(c)
+		newp := gj.NewPoint(cd)
+		f = gj.NewFeature(newp, props, nil)
+		fa = append(fa, f)
+	}
+
+	fc := gj.FeatureCollection{Type: "FeatureCollection", Features: fa}
+	gjstr, err := gj.Marshal(fc)
+	if err != nil {
+		//panic(err)
+		log.Printf("Error event: %v \n", err)
+	}
+	response.Write([]byte(gjstr))
 }
 
 func CSDCOFeatures(request *restful.Request, response *restful.Response) {

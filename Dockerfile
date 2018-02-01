@@ -1,8 +1,8 @@
 # Start from a Debian image with the latest version of Go installed
 # and a workspace (GOPATH) configured at /go.
-# docker build  --tag="opencoredata/ocdservices:0.1"  .
+# docker build   --tag="opencoredata/ocdservices:latest" --tag="opencoredata/ocdservices:0.9.1"  .
 # docker run -d -p 6789:6789  opencoredata/ocdservices:0.1
-FROM golang:1.5
+FROM golang:1.9
 
 # Copy the local package files to the container's workspace.
 ADD . /go/src/opencoredata.org/ocdServices
@@ -36,10 +36,11 @@ ENV CGO_LDFLAGS "-L/oracle/instantclient_12_1 -lclntsh"
 
 #  mac only line export DYLD_LIBRARY_PATH=/oracle/instantclient_11_2:$DYLD_LIBRARY_PATH
 
-# Build the outyet command inside the container.
+# Build the command inside the container.
 # (You may fetch or manage dependencies here,
 # either manually or with a tool like "godep".)
-RUN go get gopkg.in/rana/ora.v3
+# RUN go get gopkg.in/rana/ora.v3
+RUN go get gopkg.in/rana/ora.v4
 RUN go get github.com/gorilla/mux
 RUN go get gopkg.in/mgo.v2
 RUN go get github.com/emicklei/go-restful
@@ -51,6 +52,8 @@ RUN go get github.com/chris-ramon/graphql
 RUN go get github.com/gocarina/gocsv
 RUN go get github.com/jmoiron/sqlx
 RUN go get github.com/kisielk/sqlstruct
+RUN go get github.com/emicklei/go-restful-swagger12
+#RUN go get github.com/emicklei/go-restful/swagger
 #RUN go install opencoredata.org/ocdServices
 
 # set user
@@ -59,7 +62,6 @@ USER gorunner
 # Move to a workign directory for running codices so it can see it's static files
 # future version should take this as a param so static content can be anywhere
 WORKDIR /go/src/opencoredata.org/ocdServices
-
 
 # try and go build and run from the static version
 RUN go build

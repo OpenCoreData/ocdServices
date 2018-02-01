@@ -4,19 +4,20 @@ import (
 	// "database/sql"
 	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/emicklei/go-restful"
 	"github.com/gocarina/gocsv"
 	"opencoredata.org/ocdServices/connectors"
 )
 
-
-
 // GetAgeModle function for evaluate janus calls
-func GetAgeModle(request *restful.Request, response *restful.Response) {
+func GetAgeModel(request *restful.Request, response *restful.Response) {
 	conn, err := connectors.GetJanusConX() // get the Oracle connection
 	if err != nil {
 		log.Print(err)
+		http.Error(response, err.Error(), 500)
+		return
 	}
 	defer conn.Close()
 

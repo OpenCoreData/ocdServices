@@ -39,6 +39,12 @@ func New() *restful.WebService {
 		Param(service.PathParameter("keyword", "keyword to search on").DataType("string")).
 		Operation("Get File ID set by Keyword"))
 
+	// get Datacite metadata for a CSDCO project
+	service.Route(service.GET("/csdco/project/{IDSTRING}").To(CSDCODatacite).
+		Doc("get array of documents based on a keyword search").
+		Param(service.PathParameter("keyword", "keyword to search on").DataType("string")).
+		Operation("Get File ID set by Keyword"))
+
 	//  service.Route(service.GET("/collection/measurement/{measurement}/jrso/lsh/{leg}/{site}/{hole}").To(GetByMesJRSO).
 	// Doc("get array of documents based on a measurement in JRSO data filtered by LSH (optional)").
 	// Param(service.PathParameter("keyword", "keyword to search on").DataType("string")).
@@ -161,8 +167,8 @@ func GetFileByUUID(request *restful.Request, response *restful.Response) {
 		mongodb := session.DB("test")
 		file, _ := mongodb.GridFS("fs").Open(filename)
 		buf := make([]byte, file.Size())
-		fileBuf, err := file.Read(buf)
-		if err != nil {
+		fileBuf, fberr := file.Read(buf)
+		if fberr != nil {
 			log.Printf("Error calling aggregation_janusURLSet : %v  length %d", err, fileBuf)
 		}
 		response.AddHeader("Content-Disposition", "inline; filename=\"ocdDataFile.csv\"")
@@ -174,9 +180,25 @@ func GetFileByUUID(request *restful.Request, response *restful.Response) {
 		if err != nil {
 			log.Printf("URL lookup error: %v", err)
 		}
-		// context setting hack
+
+		// Hack:   ID and Context setting hack
 		// result.Context = ` "opencore": "http://opencoredata.org/voc/1/", "glview": "http://geolink.org/view/1/", "schema": "http://schema.org/"`
-		result.Context = "http://schema.org"
+		// The ID hack here is being added since I need these to remove blank nodes.  All
+		// this will be removed as I refactor for the use of the triple store
+		// result.Context = "http://schema.org"
+		// 	{  "opencore":"http://opencore.org/voc/1",  "glview":"http://glview.org/voc/1/",  "@vocab":"http://schema.org/"  }
+		// result.Context = [ "opencore":"http://opencore.org/voc/1",  "glview":"http://glview.org/voc/1/",  "@vocab":"http://schema.org/" ]
+
+		result.Context.Schema = "http://glview.org/voc/1/"
+		result.Context.OpenCore = "http://opencore.org/voc/1"
+		result.Context.GeoLink = "http://schema.org/"
+
+		result.ID = result.URL
+		result.Distribution.ID = fmt.Sprintf("%s%s", result.URL, "#distribution")
+		result.Author.ID = fmt.Sprintf("%s%s", result.URL, "#author")
+		result.Spatial.ID = fmt.Sprintf("%s%s", result.URL, "#spatial")
+		result.Spatial.Geo.ID = fmt.Sprintf("%s%s", result.URL, "#geo")
+
 		jsonldtext, _ := json.MarshalIndent(result, "", " ") // results as embeddale JSON-LD
 		if err != nil {
 			log.Printf("Error calling in GetFileBuyUUID : %v ", err)

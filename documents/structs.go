@@ -46,13 +46,14 @@ type Columns struct {
 
 // schema.org Dataset metadata structs
 type SchemaOrgMetadata struct {
-	Context             string       `json:"@context"` // was []interface{}
+	Context             Context      `json:"@context"` // was []interface{}  should be Context struct (which has 3 items in it for each voc)
+	ID                  string       `json:"@id"`
 	Type                string       `json:"@type"`
 	Author              Author       `json:"author"`
 	Description         string       `json:"description"`
 	Distribution        Distribution `json:"distribution"`
-	GlviewDataset       string       `json:"glview:dataset"`
-	GlviewKeywords      string       `json:"glview:keywords"`
+	GlviewDataset       string       `json:"geolink:dataset"`
+	GlviewKeywords      string       `json:"geolink:keywords"`
 	OpenCoreLeg         string       `json:"opencore:leg"`
 	OpenCoreSite        string       `json:"opencore:site"`
 	OpenCoreHole        string       `json:"opencore:hole"`
@@ -63,8 +64,15 @@ type SchemaOrgMetadata struct {
 	URL                 string       `json:"url"`
 }
 
+type Context struct {
+	Schema   string `json:"@vocab"`
+	GeoLink  string `json:"geolink"`  // namespace prefix in the rest of the struct
+	OpenCore string `json:"opencore"` // namespace prefix in the rest of the struct
+}
+
 type Author struct {
 	Type        string `json:"@type"`
+	ID          string `json:"@id"`
 	Description string `json:"description"`
 	Name        string `json:"name"`
 	URL         string `json:"url"`
@@ -72,6 +80,7 @@ type Author struct {
 
 type Distribution struct {
 	Type           string `json:"@type"`
+	ID             string `json:"@id"`
 	ContentURL     string `json:"contentUrl"`
 	DatePublished  string `json:"datePublished"`
 	EncodingFormat string `json:"encodingFormat"`
@@ -80,11 +89,13 @@ type Distribution struct {
 
 type Spatial struct {
 	Type string `json:"@type"`
+	ID   string `json:"@id"`
 	Geo  Geo    `json:"geo"`
 }
 
 type Geo struct {
 	Type      string `json:"@type"`
+	ID        string `json:"@id"`
 	Latitude  string `json:"latitude"`
 	Longitude string `json:"longitude"`
 }

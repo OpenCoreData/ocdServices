@@ -36,7 +36,7 @@ server at: /chronos/server/webapps/tomcat9090/webapps/xqe/WEB-INF/qdfs/public
 
 Search Description Files: 
 
-* neptune.xml 
+* neptune.xml
 * system.xml 
 * timescale.xml 
 * oligforam.xml 

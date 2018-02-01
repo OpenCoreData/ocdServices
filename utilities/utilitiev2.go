@@ -3,10 +3,11 @@ package utilities
 import (
 	"bytes"
 	"fmt"
-	sparql "github.com/knakk/sparql"
 	"log"
+	"strconv"
 	"time"
-    "strconv"
+
+	sparql "github.com/knakk/sparql"
 )
 
 const queries = `
@@ -51,13 +52,21 @@ WHERE {
 }
 ORDER BY ?dataset ASC(?depth)
 
+#tag: csdcoproj
+SELECT *
+WHERE  
+{    
+	?uri rdf:type <http://opencoredata.org/id/voc/csdco/v1/CSDCOProject> .    
+	?uri <http://opencoredata.org/id/voc/csdco/v1/holeid> "{{.ID}}" .  
+	?uri ?p ?o .
+}
 
 `
 
 // TODO ..  error nice if I don't get what I expect in these params
-func MaxAge(leg string, site string, hole string)  float64 {
-	repo, err := sparql.NewRepo("http://data.oceandrilling.org/sparql",
-		//sparql.DigestAuth("dba", "dba"),
+func GetCSDCOProj(identity string) *sparql.Results {
+	// repo, err := sparql.NewRepo("http://data.oceandrilling.org/sparql",
+	repo, err := sparql.NewRepo("http://localhost:9999/blazegraph/namespace/opencore/sparql",
 		sparql.Timeout(time.Millisecond*15000),
 	)
 	if err != nil {
@@ -66,10 +75,9 @@ func MaxAge(leg string, site string, hole string)  float64 {
 
 	f := bytes.NewBufferString(queries)
 	bank := sparql.LoadBank(f)
-    
-    fmt.Printf("Making call for %s %s %s\n", leg, site, hole)
 
-	q, err := bank.Prepare("agemodel",struct{ URI string }{fmt.Sprintf("<http://data.oceandrilling.org/codices/lsh/%s/%s/%s>", leg, site, hole)})
+	// q, err := bank.Prepare("my-query", struct{ Limit, Offset int }{10, 100})
+	q, err := bank.Prepare("csdcoproj", struct{ Proj string }{identity})
 	if err != nil {
 		log.Print(err)
 	}
@@ -79,29 +87,10 @@ func MaxAge(leg string, site string, hole string)  float64 {
 		log.Print(err)
 	}
 
-    maxage := 0.0
-    solutionsTest := res.Solutions() // map[string][]rdf.Term
-	  for _, i := range solutionsTest {
-  		age, err := strconv.ParseFloat(fmt.Sprint(i["age"]), 64)
-          if err != nil {
-		log.Print(err)
-	}
-        if age > maxage {
-            maxage = age
-        }
-	}
-    
-	fmt.Println("res.Solutions():")
-	for k, i := range solutionsTest {
-		fmt.Printf("At postion %v with %v \n", k, i)
-	}
-  
-      
-	return maxage
-
+	return res
 }
 
-func AgeModel(leg string, site string, hole string)  *sparql.Results {
+func MaxAge(leg string, site string, hole string) float64 {
 	repo, err := sparql.NewRepo("http://data.oceandrilling.org/sparql",
 		//sparql.DigestAuth("dba", "dba"),
 		sparql.Timeout(time.Millisecond*15000),
@@ -113,7 +102,52 @@ func AgeModel(leg string, site string, hole string)  *sparql.Results {
 	f := bytes.NewBufferString(queries)
 	bank := sparql.LoadBank(f)
 
-	q, err := bank.Prepare("agemodel",struct{ URI string }{fmt.Sprintf("<http://data.oceandrilling.org/codices/lsh/%s/%s/%s>", leg, site, hole)})
+	fmt.Printf("Making call for %s %s %s\n", leg, site, hole)
+
+	q, err := bank.Prepare("agemodel", struct{ URI string }{fmt.Sprintf("<http://data.oceandrilling.org/codices/lsh/%s/%s/%s>", leg, site, hole)})
+	if err != nil {
+		log.Print(err)
+	}
+
+	res, err := repo.Query(q)
+	if err != nil {
+		log.Print(err)
+	}
+
+	maxage := 0.0
+	solutionsTest := res.Solutions() // map[string][]rdf.Term
+	for _, i := range solutionsTest {
+		age, err := strconv.ParseFloat(fmt.Sprint(i["age"]), 64)
+		if err != nil {
+			log.Print(err)
+		}
+		if age > maxage {
+			maxage = age
+		}
+	}
+
+	fmt.Println("res.Solutions():")
+	for k, i := range solutionsTest {
+		fmt.Printf("At postion %v with %v \n", k, i)
+	}
+
+	return maxage
+
+}
+
+func AgeModel(leg string, site string, hole string) *sparql.Results {
+	repo, err := sparql.NewRepo("http://data.oceandrilling.org/sparql",
+		//sparql.DigestAuth("dba", "dba"),
+		sparql.Timeout(time.Millisecond*15000),
+	)
+	if err != nil {
+		log.Print(err)
+	}
+
+	f := bytes.NewBufferString(queries)
+	bank := sparql.LoadBank(f)
+
+	q, err := bank.Prepare("agemodel", struct{ URI string }{fmt.Sprintf("<http://data.oceandrilling.org/codices/lsh/%s/%s/%s>", leg, site, hole)})
 	if err != nil {
 		log.Print(err)
 	}
@@ -145,7 +179,6 @@ func AgeModel(leg string, site string, hole string)  *sparql.Results {
 	return res
 
 }
-
 
 func LegSite() *sparql.Results {
 	repo, err := sparql.NewRepo("http://data.oceandrilling.org/sparql",

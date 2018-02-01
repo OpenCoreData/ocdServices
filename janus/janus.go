@@ -23,7 +23,7 @@ func New() *restful.WebService {
 		Param(service.QueryParameter("depthbottom", "Depth bottom")).
 		Operation("Rock evaluation query"))
 
-	service.Route(service.GET("/agemodel").To(GetAgeModle).
+	service.Route(service.GET("/agemodel").To(GetAgeModel).
 		Doc("Test service GetAgeModles").
 		Param(service.QueryParameter("leg", "Leg of expedition")).
 		Param(service.QueryParameter("site", "Site of expedition")).

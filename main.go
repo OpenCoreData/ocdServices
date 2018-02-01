@@ -6,13 +6,12 @@ import (
 	// "github.com/chris-ramon/graphql-go/types"
 	// "encoding/json"
 	"github.com/emicklei/go-restful"
-	"github.com/emicklei/go-restful/swagger"
+	"github.com/emicklei/go-restful-swagger12"
+	//	"github.com/emicklei/go-restful/swagger"
 	// "github.com/sogko/graphql-go-handler"
 	// "github.com/chris-ramon/graphql"
 	"log"
 	"net/http"
-
-	"gopkg.in/rana/ora.v3"
 
 	"opencoredata.org/ocdServices/documents"
 	"opencoredata.org/ocdServices/expeditions"
@@ -25,7 +24,7 @@ import (
 )
 
 func init() {
-	ora.Register(nil)
+	// ora.Register(nil)  // not needed in ora.v4
 }
 
 func main() {

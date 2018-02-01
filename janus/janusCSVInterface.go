@@ -24,6 +24,8 @@ func DataByInterface(request *restful.Request, response *restful.Response, query
 	conn, err := connectors.GetJanusConX() // get the Oracle connection
 	if err != nil {
 		log.Print(err)
+		http.Error(response, err.Error(), 500)
+		return
 	}
 
 	defer conn.Close()
@@ -107,7 +109,8 @@ func DataByInterface(request *restful.Request, response *restful.Response, query
 func GetJanusCSV(db *sqlx.DB, sqlstring string) (string, error) {
 	results, err := db.Queryx(sqlstring)
 	if err != nil {
-		log.Printf(`Error with: %s`, err)
+		log.Print(err)
+		return "", err
 	}
 	defer results.Close()
 
