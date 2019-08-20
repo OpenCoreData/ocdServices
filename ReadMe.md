@@ -53,3 +53,7 @@ Search Description Files:
 * scraper.xml 
 * eoceforam.xml 
  
+## Updates
+
+For the refactor of CSDCO on Digital Object Cloud patterns only the graph package in internal is needed.
+

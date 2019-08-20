@@ -1,3 +1,5 @@
+third_party/**/*
 setenv.sh
-env.txt
-ocdServices
+configs/env.txt
+cmd/services/service
+scripts/**/*

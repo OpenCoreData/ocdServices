@@ -2,7 +2,6 @@ package graph
 
 import (
 	"github.com/emicklei/go-restful"
-	utilitiesv2 "opencoredata.org/ocdServices/internal/utilities"
 )
 
 // New function for the service calls for graph
@@ -30,14 +29,14 @@ func New() *restful.WebService {
 func ProjDetails(request *restful.Request, response *restful.Response) {
 	id := request.PathParameter("id")
 
-	data := utilitiesv2.GetCSDCOProj(id)
+	data := GetCSDCOProj(id)
 	response.WriteEntity(data)
 }
 
 func CSDCOGraph(request *restful.Request, response *restful.Response) {
 	q := request.QueryParameter("q")
 
-	sr := utilitiesv2.CSDCOGraphCall(q)
+	sr := CSDCOGraphCall(q)
 
 	response.AddHeader("Content-Type", "application/json")
 	response.Write(sr)
